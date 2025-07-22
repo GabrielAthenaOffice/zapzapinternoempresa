@@ -26,7 +26,7 @@ public class Group {
 
     @ManyToMany
     @JoinTable(
-            name = "grupo_membros",
+            name = "grupo_usuario",
             joinColumns = @JoinColumn(name = "grupo_id"),
             inverseJoinColumns = @JoinColumn(name = "usuario_id")
     )

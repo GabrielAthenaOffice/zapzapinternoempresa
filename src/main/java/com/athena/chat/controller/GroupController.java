@@ -3,6 +3,8 @@ package com.athena.chat.controller;
 import com.athena.chat.dto.GroupCreateDTO;
 import com.athena.chat.dto.GroupDTO;
 import com.athena.chat.dto.mapper.GroupMapper;
+import com.athena.chat.dto.mapper.UserMapper;
+import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.services.GroupService;
 import jakarta.validation.Valid;
@@ -26,6 +28,19 @@ public class GroupController {
                 .stream()
                 .map(GroupMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/{id}/usuarios")
+    public ResponseEntity<List<UserSimpleDTO>> listarUsuariosPorGrupo(@PathVariable Long id) {
+        return groupService.buscarPorId(id)
+                .map(group -> {
+                    List<UserSimpleDTO> usuarios = group.getMembros()
+                            .stream()
+                            .map(UserMapper::toSimpleDTO)
+                            .toList();
+                    return ResponseEntity.ok(usuarios);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}")

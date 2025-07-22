@@ -2,6 +2,7 @@ package com.athena.chat.dto.mapper;
 
 
 import com.athena.chat.dto.GroupDTO;
+import com.athena.chat.dto.simpledto.GroupSimpleDTO;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
 
@@ -19,6 +20,13 @@ public class GroupMapper {
                 group.getMembros().stream()
                         .map(User::getNome)
                         .collect(Collectors.toList())
+        );
+    }
+
+    public static GroupSimpleDTO toSimpleDTO(Group group) {
+        return new GroupSimpleDTO(
+                group.getId(),
+                group.getNome()
         );
     }
 }

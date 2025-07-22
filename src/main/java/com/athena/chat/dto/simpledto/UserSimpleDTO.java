@@ -1,6 +1,5 @@
-package com.athena.chat.dto;
+package com.athena.chat.dto.simpledto;
 
-import com.athena.chat.model.entities.permissions.UserRoles;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,11 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO {
+public class UserSimpleDTO {
     private Long id;
     private String nome;
     private String email;
-    private String cargo;
-    private UserRoles role;
 }
-
