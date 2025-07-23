@@ -33,7 +33,7 @@ public class AuthenticationController {
 
     @PostMapping("register")
     public ResponseEntity register(@RequestBody @Valid RegisterDTO data) {
-        if(this.userRepository.findByEmail(data.nome()).isPresent()) {
+        if(this.userRepository.findByEmail(data.email()).isPresent()) {
             return ResponseEntity.badRequest().build();
         }
         

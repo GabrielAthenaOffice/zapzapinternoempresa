@@ -58,12 +58,12 @@ public class User implements UserDetails {
 
     @Override
     public String getPassword() {
-        return "";
+        return this.senha;
     }
 
     @Override
     public String getUsername() {
-        return nome;
+        return this.nome;
     }
 
     @Override
