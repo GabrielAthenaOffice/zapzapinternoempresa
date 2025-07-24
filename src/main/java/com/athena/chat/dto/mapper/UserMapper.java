@@ -4,7 +4,7 @@ import com.athena.chat.dto.UserCreateDTO;
 import com.athena.chat.dto.UserDTO;
 import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.User;
-import com.athena.chat.model.entities.permissions.UserRoles;
+import com.athena.chat.model.entities.permissions.UserRole;
 
 public class UserMapper {
 
@@ -24,7 +24,7 @@ public class UserMapper {
         user.setEmail(dto.getEmail());
         user.setSenha(dto.getSenha());
         user.setCargo(dto.getCargo());
-        user.setRole(UserRoles.valueOf(dto.getRole()));
+        user.setRole(UserRole.valueOf(dto.getRole()));
         return user;
     }
 

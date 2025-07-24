@@ -1,5 +1,7 @@
 package com.athena.chat.controller;
 
+import com.athena.chat.config.security.LoginResponseDTO;
+import com.athena.chat.config.security.TokenService;
 import com.athena.chat.dto.simpledto.AuthenticationDTO;
 import com.athena.chat.dto.simpledto.RegisterDTO;
 import com.athena.chat.model.entities.User;
@@ -22,13 +24,19 @@ public class AuthenticationController {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final TokenService tokenService;
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data) {
-        var login = new UsernamePasswordAuthenticationToken(data.nome(), data.senha());
+        System.out.println("Email recebido: " + data.email());
+        System.out.println("Senha recebida: " + data.senha());
+
+        var login = new UsernamePasswordAuthenticationToken(data.email(), data.senha());
         var auth = authenticationManager.authenticate(login);
 
-        return ResponseEntity.ok().build();
+        var token = tokenService.generateToken((User) auth.getPrincipal());
+
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
     @PostMapping("register")

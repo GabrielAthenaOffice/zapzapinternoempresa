@@ -1,6 +1,6 @@
 package com.athena.chat.model.entities;
 
-import com.athena.chat.model.entities.permissions.UserRoles;
+import com.athena.chat.model.entities.permissions.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,7 +18,6 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = "id")
 public class User implements UserDetails {
 
     @Id
@@ -31,24 +30,24 @@ public class User implements UserDetails {
     private String cargo;
 
     @Enumerated(EnumType.STRING)
-    private UserRoles role; // ADMIN ou FUNCIONARIO
+    private UserRole role; // ADMIN ou FUNCIONARIO
     private LocalDateTime criadoEm = LocalDateTime.now();
 
     @ManyToMany(mappedBy = "membros")
     private Set<Group> grupos = new HashSet<>();
 
-    public User(String nome, String email, String senha, String cargo, UserRoles userRoles) {
+    public User(String nome, String email, String senha, String cargo, UserRole userRole) {
         this.nome = nome;
         this.email = email;
         this.senha = senha;
         this.cargo = cargo;
-        this.role = userRoles;
+        this.role = userRole;
         this.criadoEm = LocalDateTime.now();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if(this.role == UserRoles.ADMIN) {
+        if(this.role == UserRole.ADMIN) {
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"),
                     new SimpleGrantedAuthority("ROLE_FUNCIONARIO"));
         } else {
@@ -63,7 +62,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.nome;
+        return this.email;
     }
 
     @Override

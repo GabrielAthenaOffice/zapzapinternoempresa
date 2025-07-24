@@ -1,6 +1,6 @@
 package com.athena.chat.dto;
 
-import com.athena.chat.model.entities.permissions.UserRoles;
+import com.athena.chat.model.entities.permissions.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +13,6 @@ public class UserDTO {
     private String nome;
     private String email;
     private String cargo;
-    private UserRoles role;
+    private UserRole role;
 }
 
