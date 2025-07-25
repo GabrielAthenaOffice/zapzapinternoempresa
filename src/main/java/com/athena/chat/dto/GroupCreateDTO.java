@@ -15,6 +15,4 @@ public class GroupCreateDTO {
     private String nome;
 
     private String descricao;
-
-    private Long criadoPor; // ID do usuário criador
 }

@@ -1,5 +1,8 @@
 package com.athena.chat.services;
 
+import com.athena.chat.dto.UserDTO;
+import com.athena.chat.dto.mapper.UserMapper;
+import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,30 +17,30 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public List<User> listarUsuarios() {
-        return userRepository.findAll();
+    public List<UserSimpleDTO> listarUsuarios() throws IllegalAccessException {
+        List<User> usuarios = userRepository.findAll();
+
+        if(usuarios.isEmpty()) {
+            throw new IllegalAccessException("Nenhum usuario criado até o momento");
+        }
+
+        return usuarios.stream().map(usuario -> {
+            UserSimpleDTO dto = new UserSimpleDTO();
+            dto.setId(usuario.getId());
+            dto.setNome(usuario.getNome());
+            dto.setEmail(usuario.getEmail());
+            
+            return dto;
+        }).toList();
     }
 
-    public Optional<User> buscarPorId(Long id) {
-        return userRepository.findById(id);
+    public Optional<UserDTO> buscarPorId(Long id) {
+        User userEncontrado = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+
+        return Optional.of(UserMapper.toDTO(userEncontrado));
     }
 
-    public User salvar(User user) {
-        return userRepository.save(user);
-    }
 
-    public Optional<User> atualizar(Long id, User userAtualizado) {
-        return userRepository.findById(id).map(user -> {
-            user.setNome(userAtualizado.getNome());
-            user.setEmail(userAtualizado.getEmail());
-            user.setSenha(userAtualizado.getSenha());
-            user.setCargo(userAtualizado.getCargo());
-            user.setRole(userAtualizado.getRole());
-            return userRepository.save(user);
-        });
-    }
 
-    public void deletar(Long id) {
-        userRepository.deleteById(id);
-    }
 }

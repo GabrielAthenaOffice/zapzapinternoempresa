@@ -1,5 +1,8 @@
 package com.athena.chat.dto;
 
+import com.athena.chat.model.entities.permissions.UserRole;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -26,6 +29,6 @@ public class UserCreateDTO {
     @NotBlank(message = "O cargo é obrigatório")
     private String cargo;
 
-    @NotBlank(message = "O role é obrigatório")
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 }

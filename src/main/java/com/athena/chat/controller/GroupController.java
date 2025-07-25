@@ -9,6 +9,7 @@ import com.athena.chat.model.entities.Group;
 import com.athena.chat.services.GroupService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,13 +53,9 @@ public class GroupController {
     }
 
     @PostMapping
-    public GroupDTO criarGrupo(@RequestBody @Valid GroupCreateDTO dto) {
-        Group group = new Group();
-        group.setNome(dto.getNome());
-        group.setDescricao(dto.getDescricao());
-
-        // aqui poderíamos buscar o User pelo ID dto.getCriadoPor()
-        return GroupMapper.toDTO(groupService.salvar(group));
+    public ResponseEntity<Group> criarGrupo(@RequestBody GroupCreateDTO dto) {
+        Group grupoCriado = groupService.criarGrupo(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(grupoCriado);
     }
 
     @PutMapping("/{id}")

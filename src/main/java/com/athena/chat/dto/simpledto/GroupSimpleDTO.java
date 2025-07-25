@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class GroupSimpleDTO {
     private Long id;
     private String nome;
+    private String descricao;
 }

@@ -2,9 +2,7 @@ package com.athena.chat.dto.mapper;
 
 import com.athena.chat.dto.UserCreateDTO;
 import com.athena.chat.dto.UserDTO;
-import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.User;
-import com.athena.chat.model.entities.permissions.UserRole;
 
 public class UserMapper {
 
@@ -13,6 +11,7 @@ public class UserMapper {
                 user.getId(),
                 user.getNome(),
                 user.getEmail(),
+                user.getSenha(),
                 user.getCargo(),
                 user.getRole()
         );
@@ -24,16 +23,27 @@ public class UserMapper {
         user.setEmail(dto.getEmail());
         user.setSenha(dto.getSenha());
         user.setCargo(dto.getCargo());
-        user.setRole(UserRole.valueOf(dto.getRole()));
+        user.setRole(dto.getRole());
         return user;
     }
 
-    public static UserSimpleDTO toSimpleDTO(User user) {
-        return new UserSimpleDTO(
+    public static com.athena.chat.dto.simpledto.UserSimpleDTO toSimpleDTO(User user) {
+        return new com.athena.chat.dto.simpledto.UserSimpleDTO(
                 user.getId(),
                 user.getNome(),
                 user.getEmail()
         );
     }
+
+    public static User toUser(UserDTO dto) {
+        User user = new User();
+        user.setNome(dto.getNome());
+        user.setEmail(dto.getEmail());
+        user.setSenha(dto.getSenha());
+        user.setCargo(dto.getCargo());
+        user.setRole(dto.getRole());
+        return user;
+    }
+
 }
 

@@ -1,58 +1,52 @@
 package com.athena.chat.controller;
 
 import com.athena.chat.config.security.LoginResponseDTO;
-import com.athena.chat.config.security.TokenService;
+import com.athena.chat.dto.UserCreateDTO;
+import com.athena.chat.dto.UserDTO;
 import com.athena.chat.dto.simpledto.AuthenticationDTO;
-import com.athena.chat.dto.simpledto.RegisterDTO;
 import com.athena.chat.model.entities.User;
-import com.athena.chat.repositories.UserRepository;
+import com.athena.chat.services.LoginService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
 
-    private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
-    private final TokenService tokenService;
+    private final LoginService loginService;
 
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data) {
-        System.out.println("Email recebido: " + data.email());
-        System.out.println("Senha recebida: " + data.senha());
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
+        LoginResponseDTO logar = loginService.login(data);
 
-        var login = new UsernamePasswordAuthenticationToken(data.email(), data.senha());
-        var auth = authenticationManager.authenticate(login);
-
-        var token = tokenService.generateToken((User) auth.getPrincipal());
-
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        return new ResponseEntity<>(logar, HttpStatus.OK);
     }
 
     @PostMapping("register")
-    public ResponseEntity register(@RequestBody @Valid RegisterDTO data) {
-        if(this.userRepository.findByEmail(data.email()).isPresent()) {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        String encryptedPassword = new BCryptPasswordEncoder().encode(data.senha());
-        User user = new User(data.nome(), data.email(), encryptedPassword,
-                data.cargo(), data.roles());
+    public ResponseEntity<User> register(@RequestBody @Valid UserCreateDTO data) {
+        User registrar = loginService.registrar(data);
 
-        this.userRepository.save(user);
-
-        return ResponseEntity.ok().build();
-
+        return new ResponseEntity<>(registrar, HttpStatus.CREATED);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserDTO> atualizarUsuario(@PathVariable Long id,
+                                                    @RequestBody @Valid UserDTO userDTO) {
+        UserDTO user = loginService.atualizarUsuario(id, userDTO);
+
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<UserDTO> deletarUsuario(@PathVariable Long id) {
+        UserDTO deletarUsuario = loginService.deletarUsuario(id);
+
+        return new ResponseEntity<>(deletarUsuario, HttpStatus.OK);
+    }
+
 
 }
