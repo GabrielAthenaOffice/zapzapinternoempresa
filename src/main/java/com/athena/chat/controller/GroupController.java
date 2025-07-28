@@ -3,8 +3,6 @@ package com.athena.chat.controller;
 import com.athena.chat.dto.GroupCreateDTO;
 import com.athena.chat.dto.GroupDTO;
 import com.athena.chat.dto.mapper.GroupMapper;
-import com.athena.chat.dto.mapper.UserMapper;
-import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.services.GroupService;
 import jakarta.validation.Valid;
@@ -14,7 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/grupos")
@@ -24,53 +23,96 @@ public class GroupController {
     private final GroupService groupService;
 
     @GetMapping
-    public List<GroupDTO> listarGrupos() {
-        return groupService.listarGrupos()
-                .stream()
-                .map(GroupMapper::toDTO)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<GroupDTO>> listarGrupos() {
+        try {
+            List<GroupDTO> grupos = groupService.listarGrupos();
+
+            return new ResponseEntity<>(grupos, HttpStatus.OK);
+
+        } catch (IllegalAccessException e) {
+            return ResponseEntity.noContent().build();
+        }
     }
 
     @GetMapping("/{id}/usuarios")
-    public ResponseEntity<List<UserSimpleDTO>> listarUsuariosPorGrupo(@PathVariable Long id) {
-        return groupService.buscarPorId(id)
-                .map(group -> {
-                    List<UserSimpleDTO> usuarios = group.getMembros()
-                            .stream()
-                            .map(UserMapper::toSimpleDTO)
-                            .toList();
-                    return ResponseEntity.ok(usuarios);
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/{id}")
     public ResponseEntity<GroupDTO> buscarPorId(@PathVariable Long id) {
-        return groupService.buscarPorId(id)
-                .map(GroupMapper::toDTO)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            Optional<Stream<GroupDTO>> grupoOpt = groupService.buscarPorId(id);
+
+            return grupoOpt.map(stream -> stream.findFirst()
+                            .map(ResponseEntity::ok)
+                            .orElse(ResponseEntity.notFound().build()))
+                    .orElse(ResponseEntity.notFound().build());
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PostMapping
-    public ResponseEntity<Group> criarGrupo(@RequestBody GroupCreateDTO dto) {
+    public ResponseEntity<GroupDTO> criarGrupo(@RequestBody @Valid GroupCreateDTO dto) {
         Group grupoCriado = groupService.criarGrupo(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(grupoCriado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(GroupMapper.toDTO(grupoCriado));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GroupDTO> atualizarGrupo(@PathVariable Long id, @RequestBody Group group) {
-        return groupService.atualizar(id, group)
-                .map(GroupMapper::toDTO)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<GroupDTO> atualizarGrupo(@PathVariable Long id, @RequestBody GroupDTO groupDTO) {
+        try {
+            GroupDTO atualizado = groupService.atualizarGrupo(id, groupDTO);
+            return ResponseEntity.ok(atualizado);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<GroupDTO> deletarGrupo(@PathVariable Long id) {
+        try {
+            GroupDTO deletado = groupService.deletarGrupo(id);
+            return ResponseEntity.ok(deletado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/{groupId}/usuarios/{userId}")
-    public ResponseEntity<GroupDTO> adicionarUsuario(@PathVariable Long groupId, @PathVariable Long userId) {
-        return groupService.adicionarUsuarioAoGrupo(groupId, userId)
-                .map(GroupMapper::toDTO)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<GroupDTO> adicionarUsuarioAoGrupo(@PathVariable Long groupId, @PathVariable Long userId) {
+        try {
+            GroupDTO grupoAtualizado = groupService.adicionarUsuarioAoGrupo(groupId, userId);
+            return ResponseEntity.ok(grupoAtualizado);
+        } catch (IllegalAccessException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
+
+    @DeleteMapping("/{groupId}/usuarios/{userId}")
+    public ResponseEntity<GroupDTO> removerUsuarioDoGrupo(@PathVariable Long groupId, @PathVariable Long userId) {
+        try {
+            GroupDTO grupoAtualizado = groupService.removerUsuarioDoGrupo(groupId, userId);
+            return ResponseEntity.ok(grupoAtualizado);
+        } catch (IllegalAccessException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
+    @GetMapping("/{id}/usuarios")
+    public ResponseEntity<List<String>> listarUsuariosPorGrupo(@PathVariable Long id) {
+        try {
+            Optional<Stream<GroupDTO>> grupoOpt = groupService.buscarPorId(id);
+
+            return grupoOpt.map(stream -> stream.findFirst()
+                            .map(grupoDTO -> ResponseEntity.ok(grupoDTO.getMembros()))
+                            .orElse(ResponseEntity.notFound().build()))
+                    .orElse(ResponseEntity.notFound().build());
+
+        } catch (Exception e) {
+
+            return ResponseEntity.badRequest().build();
+
+        }
+    }
+
+
 }

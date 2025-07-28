@@ -2,7 +2,9 @@ package com.athena.chat.services;
 
 import com.athena.chat.dto.UserDTO;
 import com.athena.chat.dto.mapper.UserMapper;
+import com.athena.chat.dto.simpledto.GroupSimpleDTO;
 import com.athena.chat.dto.simpledto.UserSimpleDTO;
+import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +42,17 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
 
         return Optional.of(UserMapper.toDTO(userEncontrado));
+    }
+
+    public List<GroupSimpleDTO> listarGruposDoUsuario(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+
+        Set<Group> grupos = user.getGrupos();
+
+        return grupos.stream()
+                .map(grupo -> new GroupSimpleDTO(grupo.getId(), grupo.getNome(), grupo.getDescricao()))
+                .toList();
     }
 
 
