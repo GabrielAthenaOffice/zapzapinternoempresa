@@ -9,6 +9,7 @@ import com.athena.chat.model.entities.User;
 import com.athena.chat.repositories.GroupRepository;
 import com.athena.chat.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class GroupService {
 
@@ -47,7 +49,21 @@ public class GroupService {
         return grupo;
     }
 
-    public Group criarGrupo(GroupCreateDTO dto) {
+    public List<GroupDTO> buscarGruposPorCriador() {
+        String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User usuario = userRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário autenticado não encontrado."));
+
+        List<Group> grupos = groupRepository.findByCriadoPor(usuario);
+
+        return grupos.stream()
+                .map(GroupMapper::toDTO)
+                .toList();
+    }
+
+
+    public GroupDTO criarGrupo(GroupCreateDTO dto) {
 
         String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -60,7 +76,12 @@ public class GroupService {
         grupo.setDescricao(dto.getDescricao());
         grupo.setCriadoPor(criador);
 
-        return groupRepository.save(grupo);
+        Group salvo = groupRepository.save(grupo);
+        GroupDTO groupDTO = GroupMapper.toDTO(salvo);
+
+        log.info("Grupo criado: {} por {}", salvo.getNome(), criador.getEmail());
+
+        return groupDTO;
     }
 
     public GroupDTO atualizarGrupo(Long id, GroupDTO groupDTO) {
@@ -81,6 +102,8 @@ public class GroupService {
 
         groupRepository.delete(group);
 
+        log.warn("Grupo deletado: ID={}, Nome={}", group.getId(), group.getNome());
+
         return GroupMapper.toDTO(group);
     }
 
@@ -95,9 +118,12 @@ public class GroupService {
             grupo.getMembros().add(usuario);
             Group grupoAtualizado = groupRepository.save(grupo);
 
+            log.info("Usuário {} adicionado ao grupo {}", usuario.getEmail(), grupo.getNome());
+
             return GroupMapper.toDTO(grupoAtualizado);
 
         } catch (IllegalArgumentException e) {
+            log.error("Erro ao adicionar usuário ao grupo: {}", e.getMessage());
             throw new IllegalAccessException("Não foi possível adicionar o usuário: " + e.getMessage());
         }
     }

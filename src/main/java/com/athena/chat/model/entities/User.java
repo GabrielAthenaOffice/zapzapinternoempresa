@@ -30,7 +30,7 @@ public class User implements UserDetails {
     private String cargo;
 
     @Enumerated(EnumType.STRING)
-    private UserRole role; // ADMIN ou FUNCIONARIO
+    private UserRole role; // ADMIN, FUNCIONARIO ou ESTAGIARIO
     private LocalDateTime criadoEm = LocalDateTime.now();
 
     @ManyToMany(mappedBy = "membros")

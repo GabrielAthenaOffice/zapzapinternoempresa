@@ -2,7 +2,8 @@ package com.athena.chat.model.entities.permissions;
 
 public enum UserRole {
     ADMIN ("admin"),
-    FUNCIONARIO ("funcionario");
+    FUNCIONARIO ("funcionario"),
+    ESTAGIARIO ("estagiario");
 
     private String role;
 
@@ -13,5 +14,6 @@ public enum UserRole {
     public String getRole() {
         return role;
     }
+
 
 }

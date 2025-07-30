@@ -33,6 +33,7 @@ public class LoginService {
 
         var token = tokenService.generateToken((User) auth.getPrincipal());
 
+
         return new LoginResponseDTO(token);
     }
 

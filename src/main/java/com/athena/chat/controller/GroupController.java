@@ -34,6 +34,12 @@ public class GroupController {
         }
     }
 
+    @GetMapping("/meus-grupos")
+    public ResponseEntity<List<GroupDTO>> listarGruposDoCriador() {
+        List<GroupDTO> grupos = groupService.buscarGruposPorCriador();
+        return new ResponseEntity<>(grupos, HttpStatus.OK);
+    }
+
     @GetMapping("/{id}/usuarios")
     public ResponseEntity<GroupDTO> buscarPorId(@PathVariable Long id) {
         try {
@@ -51,8 +57,8 @@ public class GroupController {
 
     @PostMapping
     public ResponseEntity<GroupDTO> criarGrupo(@RequestBody @Valid GroupCreateDTO dto) {
-        Group grupoCriado = groupService.criarGrupo(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(GroupMapper.toDTO(grupoCriado));
+        GroupDTO grupoCriado = groupService.criarGrupo(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(grupoCriado);
     }
 
     @PutMapping("/{id}")
