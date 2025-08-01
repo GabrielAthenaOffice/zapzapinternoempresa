@@ -8,6 +8,7 @@ import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.repositories.GroupRepository;
 import com.athena.chat.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -96,6 +97,7 @@ public class GroupService {
     }
 
 
+    @Transactional
     public GroupDTO deletarGrupo(Long id) {
         Group group = groupRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Grupo não encontrado"));
