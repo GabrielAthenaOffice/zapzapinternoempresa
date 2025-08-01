@@ -3,6 +3,7 @@ package com.athena.chat.controller;
 import com.athena.chat.dto.GroupCreateDTO;
 import com.athena.chat.dto.GroupDTO;
 import com.athena.chat.dto.mapper.GroupMapper;
+import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.services.GroupService;
 import jakarta.validation.Valid;
@@ -103,8 +104,8 @@ public class GroupController {
     }
 
 
-    @GetMapping("/{id}/usuarios")
-    public ResponseEntity<List<String>> listarUsuariosPorGrupo(@PathVariable Long id) {
+    @GetMapping("/{id}/usuarios-por-grupo")
+    public ResponseEntity<List<UserSimpleDTO>> listarUsuariosPorGrupo(@PathVariable Long id) {
         try {
             Optional<Stream<GroupDTO>> grupoOpt = groupService.buscarPorId(id);
 

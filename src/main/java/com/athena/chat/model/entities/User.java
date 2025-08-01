@@ -1,6 +1,7 @@
 package com.athena.chat.model.entities;
 
 import com.athena.chat.model.entities.permissions.UserRole;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,10 +19,12 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     private String nome;
@@ -34,6 +37,7 @@ public class User implements UserDetails {
     private LocalDateTime criadoEm = LocalDateTime.now();
 
     @ManyToMany(mappedBy = "membros")
+    @JsonIgnore
     private Set<Group> grupos = new HashSet<>();
 
     public User(String nome, String email, String senha, String cargo, UserRole userRole) {

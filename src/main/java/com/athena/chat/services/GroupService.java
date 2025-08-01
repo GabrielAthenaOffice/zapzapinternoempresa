@@ -115,7 +115,19 @@ public class GroupService {
             User usuario = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
 
-            grupo.getMembros().add(usuario);
+            // Evita duplicações e sincroniza a relação
+            if (!grupo.getMembros().contains(usuario)) {
+                grupo.getMembros().add(usuario);
+            }
+
+            if (!usuario.getGrupos().contains(grupo)) {
+                usuario.getGrupos().add(grupo);
+            }
+
+            // Primeiro salva usuário
+            userRepository.save(usuario);
+
+            // Depois salva o grupo
             Group grupoAtualizado = groupRepository.save(grupo);
 
             log.info("Usuário {} adicionado ao grupo {}", usuario.getEmail(), grupo.getNome());
@@ -139,10 +151,15 @@ public class GroupService {
             throw new IllegalAccessException("Usuário não faz parte deste grupo");
         }
 
+        // Remove dos dois lados da associação
         group.getMembros().remove(user);
-        groupRepository.save(group);
+        user.getGrupos().remove(group);
 
-        return GroupMapper.toDTO(group);
+        // Persistência em ordem
+        userRepository.save(user);
+        Group grupoAtualizado = groupRepository.save(group);
+
+        return GroupMapper.toDTO(grupoAtualizado);
     }
 
 }

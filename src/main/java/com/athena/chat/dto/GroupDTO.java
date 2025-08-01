@@ -1,6 +1,7 @@
 package com.athena.chat.dto;
 
 
+import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,5 +18,5 @@ public class GroupDTO {
     private String descricao;
     private String criadoPor; // nome do criador
     private LocalDateTime criadoEm;
-    private List<String> membros; // apenas nomes dos membros
+    private List<UserSimpleDTO> membros;
 }

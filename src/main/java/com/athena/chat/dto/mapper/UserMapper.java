@@ -2,6 +2,7 @@ package com.athena.chat.dto.mapper;
 
 import com.athena.chat.dto.UserCreateDTO;
 import com.athena.chat.dto.UserDTO;
+import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.User;
 
 public class UserMapper {
@@ -27,12 +28,8 @@ public class UserMapper {
         return user;
     }
 
-    public static com.athena.chat.dto.simpledto.UserSimpleDTO toSimpleDTO(User user) {
-        return new com.athena.chat.dto.simpledto.UserSimpleDTO(
-                user.getId(),
-                user.getNome(),
-                user.getEmail()
-        );
+    public static UserSimpleDTO toSimpleDTO(User user) {
+        return new UserSimpleDTO(user.getId(), user.getNome(), user.getEmail());
     }
 
     public static User toUser(UserDTO dto) {
