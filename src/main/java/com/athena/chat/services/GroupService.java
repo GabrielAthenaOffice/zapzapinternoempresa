@@ -3,11 +3,14 @@ package com.athena.chat.services;
 
 import com.athena.chat.dto.GroupCreateDTO;
 import com.athena.chat.dto.GroupDTO;
+import com.athena.chat.dto.chat.ChatDTO;
 import com.athena.chat.dto.mapper.GroupMapper;
+import com.athena.chat.model.chat.Chat;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.repositories.GroupRepository;
 import com.athena.chat.repositories.UserRepository;
+import com.athena.chat.services.chat.ChatService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Service
@@ -25,6 +29,7 @@ public class GroupService {
 
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
+    private final ChatService chatService;
 
     public List<GroupDTO> listarGrupos() throws IllegalAccessException {
         List<Group> grupos = groupRepository.findAll();
@@ -77,10 +82,15 @@ public class GroupService {
         grupo.setDescricao(dto.getDescricao());
         grupo.setCriadoPor(criador);
 
+        Chat chat = chatService.criarChat(grupo.getNome(), Set.of(criador));
+        grupo.setChat(chat);
+
         Group salvo = groupRepository.save(grupo);
         GroupDTO groupDTO = GroupMapper.toDTO(salvo);
 
-        log.info("Grupo criado: {} por {}", salvo.getNome(), criador.getEmail());
+
+        log.info("Grupo e chat criados: Grupo={}, Chat={}, Criador={}",
+                salvo.getNome(), chat.getNome(), criador.getNome());
 
         return groupDTO;
     }
@@ -126,13 +136,17 @@ public class GroupService {
                 usuario.getGrupos().add(grupo);
             }
 
+            if (grupo.getChat() != null) {
+                chatService.adicionarParticipante(grupo.getChat(), usuario);
+            }
+
             // Primeiro salva usuário
             userRepository.save(usuario);
-
             // Depois salva o grupo
             Group grupoAtualizado = groupRepository.save(grupo);
 
-            log.info("Usuário {} adicionado ao grupo {}", usuario.getEmail(), grupo.getNome());
+            log.info("Usuário {} adicionado ao grupo e ao chat {}",
+                    usuario.getNome(), grupo.getChat().getNome());
 
             return GroupMapper.toDTO(grupoAtualizado);
 
@@ -157,9 +171,16 @@ public class GroupService {
         group.getMembros().remove(user);
         user.getGrupos().remove(group);
 
+        if (group.getChat() != null) {
+            chatService.removerParticipante(group.getChat(), user);
+        }
+
         // Persistência em ordem
         userRepository.save(user);
         Group grupoAtualizado = groupRepository.save(group);
+
+        log.info("Usuário {} removido do grupo e do chat {}", user.getEmail(), group.getChat().getNome());
+
 
         return GroupMapper.toDTO(grupoAtualizado);
     }

@@ -5,9 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class ChatDocumentUploadDTO {
-    private Long senderId;
-    private Long groupId;
+@AllArgsConstructor
+public class NovaMensagemDTO {
+    private Long chatId;
+    private String conteudo;
 }

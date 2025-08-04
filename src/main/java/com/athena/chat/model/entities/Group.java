@@ -1,5 +1,6 @@
 package com.athena.chat.model.entities;
 
+import com.athena.chat.model.chat.Chat;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,6 +34,11 @@ public class Group {
             inverseJoinColumns = @JoinColumn(name = "usuario_id")
     )
     private Set<User> membros = new HashSet<>();
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "chat_id")
+    private Chat chat;
+
 
     private LocalDateTime criadoEm = LocalDateTime.now();
 }
