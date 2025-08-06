@@ -3,6 +3,7 @@ package com.athena.chat.controller;
 import com.athena.chat.dto.UserDTO;
 import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.services.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
     private final UserService userService;

@@ -12,6 +12,6 @@ import java.util.List;
 public interface MensagemRepository extends JpaRepository<Mensagem, Long> {
 
     List<Mensagem> findByChatIdOrderByEnviadoEmAsc(Long chatId);
-    Page<Mensagem> findByChatIdOrderByEnviadoEmDesc(Long chatId, Pageable pageable);
+    //Page<Mensagem> findByChatIdOrderByEnviadoEmDesc(Long chatId, Pageable pageable);
 
 }

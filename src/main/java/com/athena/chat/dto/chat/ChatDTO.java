@@ -16,4 +16,7 @@ public class ChatDTO {
     private String nome;
     private Set<UserDTO> participantes;
     private LocalDateTime criadoEm;
+
+    public <R> ChatDTO(Long id, String nome, R collect) {
+    }
 }

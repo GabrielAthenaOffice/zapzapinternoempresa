@@ -1,5 +1,6 @@
 package com.athena.chat.model.chat;
 
+import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,6 +35,11 @@ public class Chat {
 
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Mensagem> mensagens = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "grupo_id")
+    private Group grupo;
+
 
     private LocalDateTime criadoEm = LocalDateTime.now();
 }
