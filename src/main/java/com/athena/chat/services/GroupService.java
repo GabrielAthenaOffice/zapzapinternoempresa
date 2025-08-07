@@ -5,6 +5,8 @@ import com.athena.chat.dto.GroupCreateDTO;
 import com.athena.chat.dto.GroupDTO;
 import com.athena.chat.dto.chat.ChatDTO;
 import com.athena.chat.dto.mapper.GroupMapper;
+import com.athena.chat.dto.mapper.UserMapper;
+import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.chat.Chat;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
@@ -82,7 +84,10 @@ public class GroupService {
         grupo.setDescricao(dto.getDescricao());
         grupo.setCriadoPor(criador);
 
-        Chat chat = chatService.criarChat(grupo.getNome(), Set.of(criador));
+        UserSimpleDTO setarCriador = UserMapper.toSimpleDTO(criador);
+
+        Chat chat = chatService.criarChat(grupo.getNome());
+        chat.setGrupo(grupo);
         grupo.setChat(chat);
 
         Group salvo = groupRepository.save(grupo);

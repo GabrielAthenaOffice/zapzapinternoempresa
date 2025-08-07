@@ -1,6 +1,7 @@
 package com.athena.chat.model.entities;
 
 import com.athena.chat.model.chat.Chat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,6 +38,7 @@ public class Group {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "chat_id")
+    @JsonIgnore
     private Chat chat;
 
 

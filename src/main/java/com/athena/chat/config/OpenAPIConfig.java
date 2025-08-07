@@ -1,7 +1,10 @@
 package com.athena.chat.config;
 
+import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.Components;
@@ -17,13 +20,20 @@ public class OpenAPIConfig {
 
         return new OpenAPI()
                 .info(new Info()
-                        .title("Athena API - Gestão de Grupos e Usuários")
+                        .title("Athena API")
                         .version("1.0")
-                        .description("Documentação da API para gerenciamento de usuários, grupos e permissões com autenticação via JWT."))
-                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
-                .components(new Components().addSecuritySchemes(securitySchemeName,
-                        new SecurityScheme()
-                                .name(securitySchemeName)
+                        .contact(new Contact()
+                                .name("Suporte")
+                                .email("suporte@athena.com"))
+                        .license(new License()
+                                .name("Apache 2.0")
+                                .url("https://springdoc.org")))
+                .externalDocs(new ExternalDocumentation()
+                        .description("Documentação Completa")
+                        .url("https://athena.com/docs"))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")));

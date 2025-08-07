@@ -5,6 +5,7 @@ import com.athena.chat.dto.chat.ChatDTO;
 import com.athena.chat.model.chat.Chat;
 import com.athena.chat.model.entities.User;
 
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 public class ChatMapper {
@@ -14,8 +15,9 @@ public class ChatMapper {
                 chat.getId(),
                 chat.getNome(),
                 chat.getParticipantes().stream()  // Stream<User>
-                        .map(User::getId)             // Extrai apenas o ID (Stream<Long>)
-                        .collect(Collectors.toSet())   // Coleta em um Set<Long>
+                        .map(UserMapper::toSimpleDTO)             // Extrai apenas o ID (Stream<Long>)
+                        .collect(Collectors.toSet()), // Coleta em um Set<Long>
+                chat.getCriadoEm()
         );
     }
 

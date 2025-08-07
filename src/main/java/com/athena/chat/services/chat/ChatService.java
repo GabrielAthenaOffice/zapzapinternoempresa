@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -34,19 +33,23 @@ public class ChatService {
         return ChatMapper.toDTO(chatId);
     }
 
-    public List<ChatDTO> listarTodos() {
+    public List<Chat> listarTodos() {
 
         List<Chat> chatList = chatRepository.findAll();
+
+        if(chatList.isEmpty()) {
+
+        }
 
         List<ChatDTO> dtos = chatList.stream()
                 .map(ChatMapper::toDTO)
                 .toList();
 
-        return dtos;
+        return chatList;
     }
 
 
-    public Chat criarChat(String nome, Set<User> participantes) {
+    public Chat criarChat(String nome) {
         Chat chat = new Chat();
         chat.setNome(nome);
 
@@ -55,7 +58,6 @@ public class ChatService {
                         .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + id)))
                 .collect(Collectors.toSet()); */
 
-        chat.setParticipantes(participantes);
         Chat chatSalvo = chatRepository.save(chat);
 
         return chatSalvo;

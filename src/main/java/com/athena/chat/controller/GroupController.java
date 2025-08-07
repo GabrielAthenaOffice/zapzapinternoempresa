@@ -6,6 +6,7 @@ import com.athena.chat.dto.mapper.GroupMapper;
 import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.services.GroupService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.util.stream.Stream;
 @RestController
 @RequestMapping("/api/grupos")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class GroupController {
 
     private final GroupService groupService;
