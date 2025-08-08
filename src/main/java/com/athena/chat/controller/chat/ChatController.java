@@ -27,8 +27,8 @@ public class ChatController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Chat>> listarTodos() {
-        List<Chat> chat = chatService.listarTodos();
+    public ResponseEntity<List<ChatDTO>> listarTodos() {
+        List<ChatDTO> chat = chatService.listarTodos();
 
         return new ResponseEntity<>(chat, HttpStatus.OK);
     }

@@ -33,7 +33,7 @@ public class ChatService {
         return ChatMapper.toDTO(chatId);
     }
 
-    public List<Chat> listarTodos() {
+    public List<ChatDTO> listarTodos() {
 
         List<Chat> chatList = chatRepository.findAll();
 
@@ -45,7 +45,7 @@ public class ChatService {
                 .map(ChatMapper::toDTO)
                 .toList();
 
-        return chatList;
+        return dtos;
     }
 
 
