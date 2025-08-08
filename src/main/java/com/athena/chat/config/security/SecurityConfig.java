@@ -49,6 +49,8 @@ public class SecurityConfig {
                                 // Liberar login e registro
                                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                                .requestMatchers("/ws/**").permitAll() // libera websocket + sockJS
+                                .requestMatchers("/app/**").permitAll()
 
                                 // Regras para API
                                 .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
