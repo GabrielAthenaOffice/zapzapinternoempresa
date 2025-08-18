@@ -1,6 +1,7 @@
 package com.athena.chat.dto.mapper;
 
 import com.athena.chat.dto.chat.MensagemDTO;
+import com.athena.chat.dto.chat.SimpleMensagemDTO;
 import com.athena.chat.model.chat.Chat;
 import com.athena.chat.model.chat.Mensagem;
 import com.athena.chat.model.entities.User;
@@ -31,6 +32,14 @@ public class MensagemMapper {
         mensagem.setConteudo(dto.getConteudo());
         mensagem.setEnviadoEm(LocalDateTime.now());
         return mensagem;
+    }
+
+    public static SimpleMensagemDTO dtoToSimpleDto(MensagemDTO mensagem) {
+        SimpleMensagemDTO simpleMensagemDTO = new SimpleMensagemDTO();
+        simpleMensagemDTO.setChatId(mensagem.getId());
+        simpleMensagemDTO.setNomeEnvio(mensagem.getRemetenteNome());
+        simpleMensagemDTO.setConteudo(mensagem.getConteudo());
+        return simpleMensagemDTO;
     }
 }
 

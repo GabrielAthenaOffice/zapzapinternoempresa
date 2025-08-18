@@ -82,7 +82,7 @@ public class ChatService {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new IllegalArgumentException("Chat não encontrado"));
 
-        User remetente = userRepository.findByEmail(emailUsuario)
+        User remetente = userRepository.findByNome(emailUsuario)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não autenticado"));
 
         Mensagem novaMensagem = MensagemMapper.fromDTO(dto, remetente, chat);
