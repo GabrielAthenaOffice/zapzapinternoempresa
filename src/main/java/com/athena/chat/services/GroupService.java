@@ -49,7 +49,7 @@ public class GroupService {
 
     public Optional<Stream<GroupDTO>> buscarPorId(Long id) {
         Optional<Group> group = Optional.ofNullable(groupRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Nenhum usuário encontrado")));
+                .orElseThrow(() -> new IllegalArgumentException("Nenhum grupo encontrado")));
 
         Optional<Stream<GroupDTO>> grupo = Optional.ofNullable((group.stream()
                 .map(GroupMapper::toDTO)));

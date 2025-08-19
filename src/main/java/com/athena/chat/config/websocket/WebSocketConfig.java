@@ -1,4 +1,4 @@
-package com.athena.chat.config;
+package com.athena.chat.config.websocket;
 
 
 import org.springframework.context.annotation.Configuration;
