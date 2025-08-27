@@ -1,6 +1,7 @@
 package com.athena.chat.config.security;
 
 import com.athena.chat.repositories.UserRepository;
+import com.athena.chat.services.AuthorizationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,24 +22,38 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private final TokenService tokenService;
     private final UserRepository userRepository;
+    private final AuthorizationService authorizationService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        var token = this.recoverToken(request);
+        var token = tokenService.getJwtFromCookies(request);
 
-        if(token != null) {
-            var subject = tokenService.validateToken(token);
+        try {
+            String jwt = parseJwt(request);
 
-            if (subject != null) {
-                UserDetails user = userRepository.findByEmail(subject)
-                        .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+            if(token != null) {
+                var subject = tokenService.validateToken(token);
 
+                if (subject != null) {
+                    UserDetails user = authorizationService.loadUserByUsername(subject);
 
-                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
+        } catch (Exception e) {
+            logger.error("Cannot set user authentication: {}", e);
         }
+
+
         filterChain.doFilter(request, response);
+    }
+
+    private String parseJwt(HttpServletRequest request) {
+        String jwt = tokenService.getJwtFromCookies(request);
+        logger.debug("AuthTokenFilter.java: {}");
+        return jwt;
     }
 
     private String recoverToken(HttpServletRequest request) {

@@ -5,8 +5,13 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.WebUtils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -18,6 +23,9 @@ public class TokenService {
     @Value("${api.security.token.secret}")
     private String secret;
 
+    @Value("${api.security.cookies.secrets}")
+    private String jwtCookie;
+
     public String generateToken(User user) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
@@ -28,8 +36,38 @@ public class TokenService {
                     .sign(algorithm);
         } catch(JWTCreationException exception){
             throw new RuntimeException("Erro para gerar o token", exception);
-
         }
+    }
+
+    public ResponseCookie generateCookie(User userPrincipal) {
+        String jwt = generateToken(userPrincipal);
+
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt)
+                .path("/api")
+                .maxAge(24 * 60 * 60)
+                .httpOnly(false)
+                .build();
+
+        return cookie;
+    }
+
+    public String getJwtFromCookies(HttpServletRequest httpServletRequest){
+        Cookie cookie = WebUtils.getCookie(httpServletRequest, jwtCookie);
+
+        if(cookie != null) {
+            return cookie.getValue();
+        } else {
+            return null;
+        }
+
+    }
+
+    public ResponseCookie getCleanCookie() {
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie)
+                .path("/api")
+                .build();
+
+        return cookie;
     }
 
     public String validateToken(String token) {
@@ -41,10 +79,9 @@ public class TokenService {
                     .verify(token)
                     .getSubject();
         } catch (JWTVerificationException exception) {
-            return "";
+            return "NULL";
         }
     }
-
 
     private Instant genExpirationDate() {
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
