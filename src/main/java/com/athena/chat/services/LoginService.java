@@ -6,13 +6,21 @@ import com.athena.chat.dto.UserCreateDTO;
 import com.athena.chat.dto.UserDTO;
 import com.athena.chat.dto.mapper.UserMapper;
 import com.athena.chat.dto.simpledto.AuthenticationDTO;
+import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -23,18 +31,27 @@ public class LoginService {
     private final TokenService tokenService;
 
     public LoginResponseDTO login(AuthenticationDTO data) {
+        Authentication authentication = null;
+
         System.out.println("Senha banco: " + userRepository.findByEmail(data.email()).get().getSenha());
         System.out.println("Senha digitada: " + data.senha());
         System.out.println("Senha confere? " + new BCryptPasswordEncoder().matches(data.senha(), userRepository.findByEmail(data.email()).get().getSenha()));
 
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(data.email(), data.senha())
+            );
+        } catch (AuthenticationException exception) {
+            throw new RuntimeException("Bad credentials", exception);
+        }
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        User userDetails = (User) authentication.getPrincipal();
+        ResponseCookie jwtCookie = tokenService.generateCookie(userDetails);
 
-        var login = new UsernamePasswordAuthenticationToken(data.email(), data.senha());
-        var auth = authenticationManager.authenticate(login);
-
-        var token = tokenService.generateToken((User) auth.getPrincipal());
+        UserSimpleDTO userSimpleDTO = new UserSimpleDTO(userDetails.getId(), userDetails.getNome(), userDetails.getEmail());
 
 
-        return new LoginResponseDTO(token);
+        return new LoginResponseDTO(userSimpleDTO, jwtCookie.toString());
     }
 
     public User registrar(UserCreateDTO data) {
