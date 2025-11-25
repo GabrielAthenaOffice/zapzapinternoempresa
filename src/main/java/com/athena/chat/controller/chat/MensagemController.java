@@ -30,7 +30,7 @@ public class MensagemController {
         Long userId = userDetails.getId();
         List<MensagemDTO> mensagens = mensagemService.listarMensagens(chatId, userId);
 
-        return new ResponseEntity<>(mensagens, HttpStatus.FOUND);
+        return new ResponseEntity<>(mensagens, HttpStatus.OK);
     }
 
     @PostMapping("/chats/{chatId}/mensagens")

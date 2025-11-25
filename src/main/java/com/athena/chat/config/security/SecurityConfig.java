@@ -18,9 +18,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
@@ -35,8 +32,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // 🔑 Mudar para IF_REQUIRED para permitir cookies em requests autenticados
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(
                         authorize -> authorize
                                 //SWAGGER
@@ -50,6 +48,8 @@ public class SecurityConfig {
                                 // Liberar login e registro
                                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/auth/user").authenticated() // Agora autenticado mas permitido
+                                .requestMatchers(HttpMethod.POST, "/auth/singout").authenticated() // Logout
                                 .requestMatchers("/ws/**").permitAll() // libera websocket + sockJS
                                 .requestMatchers("/app/**").permitAll()
 
@@ -58,7 +58,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/**").authenticated()
-                        .anyRequest().authenticated()
+                                .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -75,14 +75,15 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Configuração consolidada de CORS
+    // Configuração consolidada de CORS com suporte a credenciais
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(List.of("*"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000")); // Específico para desenvolvimento
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Métodos explícitos
+        configuration.setAllowedHeaders(List.of("*")); // Headers permitidos
+        configuration.setAllowCredentials(true); // 🔑 Permite cookies/credenciais
+        configuration.setMaxAge(3600L); // Cache de 1 hora
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -100,6 +101,4 @@ public class SecurityConfig {
                 "webjars/**"
         ));
     }
-
-
 }

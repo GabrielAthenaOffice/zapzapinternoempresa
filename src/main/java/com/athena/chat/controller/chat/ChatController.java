@@ -25,7 +25,7 @@ public class ChatController {
     public ResponseEntity<ChatDTO> buscarPorId(@PathVariable Long id) {
         ChatDTO chat = chatService.buscarPorId(id);
 
-        return new ResponseEntity<>(chat, HttpStatus.FOUND);
+        return new ResponseEntity<>(chat, HttpStatus.OK);
     }
 
     @GetMapping

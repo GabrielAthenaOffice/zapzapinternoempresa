@@ -24,17 +24,40 @@ public class ChatWebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatService chatService;
 
-    @MessageMapping("/chats/{chatId}/send") // Ex: /app/chats/1/send
-    public String enviarMensagem(@DestinationVariable Long chatId, MensagemDTO mensagemDTO, Principal principal) {
-        String nomeUsuario = (principal != null) ? principal.getName() : mensagemDTO.getRemetenteNome();
+    @MessageMapping("/chats/{chatId}/send")
+    @SendTo("/topic/chats/{chatId}")
+    public MensagemDTO enviarMensagem(
+            @DestinationVariable Long chatId,
+            MensagemDTO mensagemDTO,
+            Principal principal) {
 
-        MensagemDTO mensagemSalva = chatService.salvarMensagem(chatId, mensagemDTO, nomeUsuario);
+        try {
+            String nomeUsuario;
 
-        // Envia mensagem para todos os inscritos no /topic/chats/{chatId}
-        messagingTemplate.convertAndSend("/topic/chats/" + chatId, mensagemSalva);
+            if (principal != null) {
+                nomeUsuario = principal.getName();
+                System.out.println("✅ Principal recebido via WebSocket: " + nomeUsuario);
+            } else if (mensagemDTO.getRemetenteNome() != null && !mensagemDTO.getRemetenteNome().isEmpty()) {
+                nomeUsuario = mensagemDTO.getRemetenteNome();
+                System.out.println("⚠️ Usando fallback remetenteNome: " + nomeUsuario);
+            } else {
+                System.err.println("❌ Nenhuma informação de usuário disponível");
+                throw new IllegalArgumentException("Usuário não identificado");
+            }
 
-        SimpleMensagemDTO simpleMensagemDTO = MensagemMapper.dtoToSimpleDto(mensagemSalva);
+            System.out.println("📨 Salvando mensagem para chat: " + chatId + " de: " + nomeUsuario);
+            MensagemDTO mensagemSalva = chatService.salvarMensagem(chatId, mensagemDTO, nomeUsuario);
+            System.out.println("✅ Mensagem salva com sucesso: " + mensagemSalva.getId());
 
-        return HtmlUtils.htmlEscape(String.valueOf(simpleMensagemDTO));
+            return mensagemSalva;
+
+        } catch (IllegalArgumentException e) {
+            System.err.println("❌ Erro na validação: " + e.getMessage());
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao enviar mensagem: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }

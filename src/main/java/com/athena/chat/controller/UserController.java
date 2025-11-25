@@ -25,21 +25,21 @@ public class UserController {
     public ResponseEntity<List<UserSimpleDTO>> listarUsuarios() throws IllegalAccessException {
         List<UserSimpleDTO> usuarios = userService.listarUsuarios();
 
-        return new ResponseEntity<>(usuarios, HttpStatus.FOUND);
+        return new ResponseEntity<>(usuarios, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Optional<UserDTO>> buscarPorId(@PathVariable Long id) {
         Optional<UserDTO> userDTO = userService.buscarPorId(id);
 
-        return new ResponseEntity<>(userDTO, HttpStatus.FOUND);
+        return new ResponseEntity<>(userDTO, HttpStatus.OK);
     }
 
     @GetMapping("/grupos/{userid}")
     public ResponseEntity<List<GroupSimpleDTO>> listarGruposDoUsuario(@PathVariable Long userid) {
         List<GroupSimpleDTO> gruposUsuario = userService.listarGruposDoUsuario(userid);
 
-        return new ResponseEntity<>(gruposUsuario, HttpStatus.FOUND);
+        return new ResponseEntity<>(gruposUsuario, HttpStatus.OK);
     }
 
 }
