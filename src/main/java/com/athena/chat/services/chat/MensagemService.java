@@ -10,6 +10,7 @@ import com.athena.chat.repositories.chat.ChatRepository;
 import com.athena.chat.repositories.chat.MensagemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,16 +23,26 @@ public class MensagemService {
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
 
-    public MensagemDTO salvarMensagem(MensagemDTO dto) {
-        User remetente = userRepository.findById(dto.getRemetenteId())
-                .orElseThrow(() -> new IllegalArgumentException("Remetente não encontrado"));
-
-        Chat chat = chatRepository.findById(dto.getChatId())
+    @Transactional
+    public MensagemDTO salvarMensagem(Long chatId, MensagemDTO dto, String nomeUsuario) {
+        Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new IllegalArgumentException("Chat não encontrado"));
 
-        Mensagem mensagem = MensagemMapper.fromDTO(dto, remetente, chat);
+        User remetente = userRepository.findByNome(nomeUsuario)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não autenticado"));
 
-        Mensagem salva = mensagemRepository.save(mensagem);
+        // ADICIONAR VALIDAÇÃO
+        if (!chat.getParticipantes().contains(remetente)) {
+            try {
+                throw new IllegalAccessException("Usuário não é participante deste chat");
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        dto.setRemetenteId(remetente.getId());
+        Mensagem novaMensagem = MensagemMapper.fromDTO(dto, remetente, chat);
+        Mensagem salva = mensagemRepository.save(novaMensagem);
 
         return MensagemMapper.toDTO(salva, remetente.getId());
     }

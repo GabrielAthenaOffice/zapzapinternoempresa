@@ -45,7 +45,9 @@ public class TokenService {
         ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt)
                 .path("/api")
                 .maxAge(24 * 60 * 60)
-                .httpOnly(false)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
                 .build();
 
         return cookie;

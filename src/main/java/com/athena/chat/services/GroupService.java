@@ -84,8 +84,6 @@ public class GroupService {
         grupo.setDescricao(dto.getDescricao());
         grupo.setCriadoPor(criador);
 
-        UserSimpleDTO setarCriador = UserMapper.toSimpleDTO(criador);
-
         Chat chat = chatService.criarChat(grupo.getNome());
         chat.setGrupo(grupo);
         grupo.setChat(chat);

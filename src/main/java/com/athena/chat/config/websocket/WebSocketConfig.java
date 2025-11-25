@@ -14,10 +14,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws") // endpoint de conexão WebSocket
-                .setAllowedOriginPatterns("*")
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("http://localhost:3000", "http://localhost:4200") // Ajuste conforme seu frontend
                 .setHandshakeHandler(new DefaultHandshakeHandler())
-                .withSockJS(); // fallback para navegadores que não suportam WebSocket puro
+                .withSockJS();
     }
 
     @Override
@@ -25,27 +25,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.enableSimpleBroker("/topic"); // cliente ouve aqui
         registry.setApplicationDestinationPrefixes("/app"); // cliente envia aqui
     }
-
-    /*@Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-
-                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    String token = accessor.getFirstNativeHeader("Authorization");
-                    if (token != null && token.startsWith("Bearer ")) {
-                        token = token.substring(7);
-                        Authentication auth = jwtService.parseToken(token); // seu método que valida e cria Authentication
-                        if (auth != null) {
-                            accessor.setUser(auth);
-                        }
-                    }
-                }
-                return message;
-            }
-        });
-    } */
 
 }

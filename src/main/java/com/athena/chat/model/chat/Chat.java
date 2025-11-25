@@ -2,6 +2,7 @@ package com.athena.chat.model.chat;
 
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
+import com.athena.chat.model.entities.permissions.TipoChat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,12 +20,14 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Chat {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nome;
+
+    @Enumerated(EnumType.STRING)
+    private TipoChat tipo;
 
     @ManyToMany
     @JoinTable(
@@ -38,9 +41,8 @@ public class Chat {
     private List<Mensagem> mensagens = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "grupo_id")
+    @JoinColumn(name = "grupo_id", nullable = true) // Tornar opcional
     private Group grupo;
-
 
     private LocalDateTime criadoEm = LocalDateTime.now();
 }

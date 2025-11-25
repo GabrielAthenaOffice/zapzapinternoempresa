@@ -16,5 +16,5 @@ public class MensagemDTO {
     private String remetenteNome;
     private String conteudo;
     private LocalDateTime enviadoEm;
-    private boolean lida; // true se o usuário atual já leu
+    private boolean lida; // true se o usuário atual ja leu
 }

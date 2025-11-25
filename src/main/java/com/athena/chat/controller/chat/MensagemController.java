@@ -33,15 +33,27 @@ public class MensagemController {
         return new ResponseEntity<>(mensagens, HttpStatus.FOUND);
     }
 
-    @PostMapping
+    @PostMapping("/chats/{chatId}/mensagens")
     public ResponseEntity<MensagemDTO> enviarMensagem(
+            @PathVariable Long chatId,
             @RequestBody MensagemDTO dto,
             @AuthenticationPrincipal User userDetails) {
 
-        dto.setRemetenteId(userDetails.getId());
-        MensagemDTO mensagemDTO = mensagemService.salvarMensagem(dto);
+        try {
+            MensagemDTO mensagemSalva = mensagemService.salvarMensagem(chatId, dto, userDetails.getNome());
+            return ResponseEntity.ok(mensagemSalva);
 
-        return new ResponseEntity<>(mensagemDTO, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (RuntimeException e) {
+
+            if (e.getCause() instanceof IllegalAccessException) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            }
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
 }
