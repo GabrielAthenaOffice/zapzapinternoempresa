@@ -1,24 +1,24 @@
 package com.athena.chat.services;
 
-
 import com.athena.chat.dto.GroupCreateDTO;
 import com.athena.chat.dto.GroupDTO;
-import com.athena.chat.dto.chat.ChatDTO;
 import com.athena.chat.dto.mapper.GroupMapper;
-import com.athena.chat.dto.mapper.UserMapper;
-import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.chat.Chat;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
+import com.athena.chat.model.entities.permissions.TipoChat;
 import com.athena.chat.repositories.GroupRepository;
 import com.athena.chat.repositories.UserRepository;
+import com.athena.chat.repositories.chat.ChatRepository;
 import com.athena.chat.services.chat.ChatService;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -31,7 +31,7 @@ public class GroupService {
 
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
-    private final ChatService chatService;
+    private final ChatRepository chatRepository;
 
     public List<GroupDTO> listarGrupos() throws IllegalAccessException {
         List<Group> grupos = groupRepository.findAll();
@@ -40,21 +40,17 @@ public class GroupService {
             throw new IllegalAccessException("Nenhum grupo criado até o momento");
         }
 
-        List<GroupDTO> groupDTOS = grupos.stream()
+        return grupos.stream()
                 .map(GroupMapper::toDTO)
                 .toList();
-
-        return groupDTOS;
     }
 
     public Optional<Stream<GroupDTO>> buscarPorId(Long id) {
         Optional<Group> group = Optional.ofNullable(groupRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nenhum grupo encontrado")));
 
-        Optional<Stream<GroupDTO>> grupo = Optional.ofNullable((group.stream()
+        return Optional.ofNullable((group.stream()
                 .map(GroupMapper::toDTO)));
-
-        return grupo;
     }
 
     public List<GroupDTO> buscarGruposPorCriador() {
@@ -70,33 +66,62 @@ public class GroupService {
                 .toList();
     }
 
+    @Transactional
+    public GroupDTO criarGrupo(GroupCreateDTO dto, User autenticado) {
 
-    public GroupDTO criarGrupo(GroupCreateDTO dto) {
-
-        String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        User criador = userRepository.findByEmail(emailUsuario)
+        // Garante que o criador eh um usuario
+        User criador = userRepository.findById(autenticado.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Usuário autenticado não encontrado."));
 
+        // Conjunto de IDs: usuarios do DTO + criador
+        Set<Long> ids = new HashSet<>(dto.getUsuariosIds() != null ? dto.getUsuariosIds() : List.of());
+        ids.add(criador.getId());
 
+        // Carrega todos de uma vez
+        List<User> usuarios = userRepository.findAllById(ids);
+
+        if (usuarios.size() != ids.size()) {
+            throw new IllegalArgumentException("Um ou mais usuários não foram encontrados.");
+        }
+
+        // MONTA O GRUPO
         Group grupo = new Group();
         grupo.setNome(dto.getNome());
         grupo.setDescricao(dto.getDescricao());
         grupo.setCriadoPor(criador);
 
-        Chat chat = chatService.criarChat(grupo.getNome());
+        for (User u : usuarios) {
+            grupo.getMembros().add(u);
+            // eh opcional, mas deixei pra aprender como trata essas relacoes
+            u.getGrupos().add(grupo);
+        }
+
+        // MONTA O CHAT
+        Chat chat = new Chat();
+        chat.setNome(dto.getNome());
+        chat.setTipo(TipoChat.GRUPO);
+
+        for (User u : usuarios) {
+            chat.getParticipantes().add(u);
+        }
+
+        // LIGA OS DOIS LADOS
         chat.setGrupo(grupo);
         grupo.setChat(chat);
 
-        Group salvo = groupRepository.save(grupo);
-        GroupDTO groupDTO = GroupMapper.toDTO(salvo);
+        // SALVA SO O CHAT (dono do OneToOne, cascade = ALL)
+        Chat chatSalvo = chatRepository.save(chat);
+        Group grupoSalvo = chatSalvo.getGrupo();
 
+        log.info("Grupo e chat criados: Grupo={}, Chat={}, Criador={}, Membros={}",
+                grupoSalvo.getNome(), chatSalvo.getNome(), criador.getNome(), ids);
 
-        log.info("Grupo e chat criados: Grupo={}, Chat={}, Criador={}",
-                salvo.getNome(), chat.getNome(), criador.getNome());
+        GroupDTO groupDTO = GroupMapper.toDTO(grupoSalvo);
+        groupDTO.setChatId(chatSalvo.getId());
 
         return groupDTO;
     }
+
 
     public GroupDTO atualizarGrupo(Long id, GroupDTO groupDTO) {
         Group group = groupRepository.findById(id)
@@ -122,70 +147,89 @@ public class GroupService {
         return GroupMapper.toDTO(group);
     }
 
-    public GroupDTO adicionarUsuarioAoGrupo(Long groupId, Long userId) throws IllegalAccessException {
-        try {
-            Group grupo = groupRepository.findById(groupId)
-                    .orElseThrow(() -> new IllegalArgumentException("Grupo não encontrado"));
+    @Transactional
+    public GroupDTO adicionarUsuarioAoGrupo(Long groupId, Long userId) {
 
-            User usuario = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
-
-            // Evita duplicações e sincroniza a relação
-            if (!grupo.getMembros().contains(usuario)) {
-                grupo.getMembros().add(usuario);
-            }
-
-            if (!usuario.getGrupos().contains(grupo)) {
-                usuario.getGrupos().add(grupo);
-            }
-
-            if (grupo.getChat() != null) {
-                chatService.adicionarParticipante(grupo.getChat(), usuario);
-            }
-
-            // Primeiro salva usuário
-            userRepository.save(usuario);
-            // Depois salva o grupo
-            Group grupoAtualizado = groupRepository.save(grupo);
-
-            log.info("Usuário {} adicionado ao grupo e ao chat {}",
-                    usuario.getNome(), grupo.getChat().getNome());
-
-            return GroupMapper.toDTO(grupoAtualizado);
-
-        } catch (IllegalArgumentException e) {
-            log.error("Erro ao adicionar usuário ao grupo: {}", e.getMessage());
-            throw new IllegalAccessException("Não foi possível adicionar o usuário: " + e.getMessage());
-        }
-    }
-
-    public GroupDTO removerUsuarioDoGrupo(Long groupId, Long userId) throws IllegalAccessException {
-        Group group = groupRepository.findById(groupId)
+        Group grupo = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Grupo não encontrado"));
 
-        User user = userRepository.findById(userId)
+        User usuario = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
 
-        if (!group.getMembros().contains(user)) {
-            throw new IllegalAccessException("Usuário não faz parte deste grupo");
+        // caso seja membro vai so retornar o grupo
+        if (!grupo.getMembros().contains(usuario)) {
+            grupo.getMembros().add(usuario);
+            // manter o lado inverso coerente em memória
+            usuario.getGrupos().add(grupo);
         }
 
-        // Remove dos dois lados da associação
-        group.getMembros().remove(user);
-        user.getGrupos().remove(group);
-
-        if (group.getChat() != null) {
-            chatService.removerParticipante(group.getChat(), user);
+        // se existir chat vinculado, adiciona também la
+        Chat chat = grupo.getChat();
+        if (chat != null && !chat.getParticipantes().contains(usuario)) {
+            chat.getParticipantes().add(usuario);
         }
 
-        // Persistência em ordem
-        userRepository.save(user);
-        Group grupoAtualizado = groupRepository.save(group);
+        // NAO precisa salvar user separado.
+        // Como esta tudo manuseado dentro da transacao, pode:
+        // 1) confiar no dirty checking e não chamar save nenhum
+        // ou
+        // 2) salvar so o "agregado raiz", por exemplo o chat:
+        if (chat != null) {
+            chatRepository.save(chat); // cascade = ALL para Group
+        } else {
+            groupRepository.save(grupo);
+        }
 
-        log.info("Usuário {} removido do grupo e do chat {}", user.getEmail(), group.getChat().getNome());
+        log.info("Usuário {} adicionado ao grupo {} e ao chat {}",
+                usuario.getNome(),
+                grupo.getNome(),
+                chat != null ? chat.getNome() : "sem chat");
 
+        return GroupMapper.toDTO(grupo);
+    }
 
-        return GroupMapper.toDTO(grupoAtualizado);
+    @Transactional
+    public GroupDTO removerUsuarioDoGrupo(Long groupId, Long userId) {
+
+        Group grupo = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Grupo não encontrado"));
+
+        User usuario = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+
+        if (!grupo.getMembros().contains(usuario)) {
+            throw new IllegalArgumentException("Usuário não faz parte deste grupo");
+        }
+
+        // regra opcional: impedir remover o criador
+        if (grupo.getCriadoPor() != null &&
+                grupo.getCriadoPor().getId().equals(usuario.getId())) {
+            throw new IllegalArgumentException("Não é permitido remover o criador do grupo");
+        }
+
+        // remove dos dois lados da ManyToMany
+        grupo.getMembros().remove(usuario);
+        usuario.getGrupos().remove(grupo);
+
+        // se tiver chat vinculado, remove la também
+        Chat chat = grupo.getChat();
+        if (chat != null) {
+            chat.getParticipantes().remove(usuario);
+        }
+
+        // de novo: 1 save so
+        if (chat != null) {
+            chatRepository.save(chat);
+        } else {
+            groupRepository.save(grupo);
+        }
+
+        log.info("Usuário {} removido do grupo {} e do chat {}",
+                usuario.getEmail(),
+                grupo.getNome(),
+                chat != null ? chat.getNome() : "sem chat");
+
+        return GroupMapper.toDTO(grupo);
     }
 
 }

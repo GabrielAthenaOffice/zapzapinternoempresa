@@ -1,7 +1,7 @@
 package com.athena.chat.controller.chat;
 
 import com.athena.chat.dto.chat.ChatDTO;
-import com.athena.chat.model.chat.Chat;
+import com.athena.chat.dto.chat.ChatResumoDTO;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.services.chat.ChatService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -36,8 +36,8 @@ public class ChatController {
     }
 
     @GetMapping("/meus-chats")
-    public ResponseEntity<List<ChatDTO>> listarMeusChats(@AuthenticationPrincipal User userDetails) {
-        List<ChatDTO> chats = chatService.listarChatsDoUsuario(userDetails.getId());
+    public ResponseEntity<List<ChatResumoDTO>> listarMeusChats(@AuthenticationPrincipal User userDetails) {
+        List<ChatResumoDTO> chats = chatService.listarChatsDoUsuario(userDetails.getId());
 
         return ResponseEntity.ok(chats);
     }
@@ -47,5 +47,13 @@ public class ChatController {
                                                     @AuthenticationPrincipal User userDetails) {
         ChatDTO chat = chatService.criarChatPrivado(userDetails.getId(), usuarioDestinoId);
         return ResponseEntity.status(HttpStatus.CREATED).body(chat);
+    }
+
+    @DeleteMapping("/{chatId}")
+    public ResponseEntity<ChatDTO> deletarChat(@PathVariable Long chatId,
+                                            @AuthenticationPrincipal User userDetails) {
+        ChatDTO chatDeletad = chatService.deletarChat(chatId, userDetails);
+
+        return ResponseEntity.ok().body(chatDeletad);
     }
 }

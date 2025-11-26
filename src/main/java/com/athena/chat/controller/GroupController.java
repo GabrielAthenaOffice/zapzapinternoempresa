@@ -5,12 +5,14 @@ import com.athena.chat.dto.GroupDTO;
 import com.athena.chat.dto.mapper.GroupMapper;
 import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.Group;
+import com.athena.chat.model.entities.User;
 import com.athena.chat.services.GroupService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -59,10 +61,12 @@ public class GroupController {
     }
 
     @PostMapping
-    public ResponseEntity<GroupDTO> criarGrupo(@RequestBody @Valid GroupCreateDTO dto) {
-        GroupDTO grupoCriado = groupService.criarGrupo(dto);
+    public ResponseEntity<GroupDTO> criarGrupo(@RequestBody @Valid GroupCreateDTO dto,
+                                               @AuthenticationPrincipal User userDetails) {
+        GroupDTO grupoCriado = groupService.criarGrupo(dto, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED).body(grupoCriado);
     }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<GroupDTO> atualizarGrupo(@PathVariable Long id, @RequestBody GroupDTO groupDTO) {
@@ -86,25 +90,18 @@ public class GroupController {
     }
 
     @PostMapping("/{groupId}/usuarios/{userId}")
-    public ResponseEntity<GroupDTO> adicionarUsuarioAoGrupo(@PathVariable Long groupId, @PathVariable Long userId) {
-        try {
-            GroupDTO grupoAtualizado = groupService.adicionarUsuarioAoGrupo(groupId, userId);
-            return ResponseEntity.ok(grupoAtualizado);
-        } catch (IllegalAccessException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<GroupDTO> adicionarUsuarioAoGrupo(@PathVariable Long groupId,
+                                                            @PathVariable Long userId) {
+        GroupDTO grupoAtualizado = groupService.adicionarUsuarioAoGrupo(groupId, userId);
+        return ResponseEntity.ok(grupoAtualizado);
     }
 
     @DeleteMapping("/{groupId}/usuarios/{userId}")
-    public ResponseEntity<GroupDTO> removerUsuarioDoGrupo(@PathVariable Long groupId, @PathVariable Long userId) {
-        try {
-            GroupDTO grupoAtualizado = groupService.removerUsuarioDoGrupo(groupId, userId);
-            return ResponseEntity.ok(grupoAtualizado);
-        } catch (IllegalAccessException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<GroupDTO> removerUsuarioDoGrupo(@PathVariable Long groupId,
+                                                          @PathVariable Long userId) {
+        GroupDTO grupoAtualizado = groupService.removerUsuarioDoGrupo(groupId, userId);
+        return ResponseEntity.ok(grupoAtualizado);
     }
-
 
     @GetMapping("/{id}/usuarios-por-grupo")
     public ResponseEntity<List<UserSimpleDTO>> listarUsuariosPorGrupo(@PathVariable Long id) {
