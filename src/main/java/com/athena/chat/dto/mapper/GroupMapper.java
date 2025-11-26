@@ -21,6 +21,7 @@ public class GroupMapper {
 
         return new GroupDTO(
                 group.getId(),
+                null,
                 group.getNome(),
                 group.getDescricao(),
                 group.getCriadoPor() != null ? group.getCriadoPor().getNome() : null,
