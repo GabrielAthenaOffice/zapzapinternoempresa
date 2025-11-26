@@ -11,8 +11,16 @@ import java.time.LocalDateTime;
 public class MensagemMapper {
 
     public static MensagemDTO toDTO(Mensagem mensagem, Long userId) {
-        boolean lida = mensagem.getUsuariosQueLeram().stream()
-                .anyMatch(u -> u.getId().equals(userId));
+        boolean lida;
+        // Se sou o remetente, "lida" significa: ALGUM OUTRO usuario leu
+        if (mensagem.getRemetente().getId().equals(userId)) {
+            lida = mensagem.getUsuariosQueLeram().stream()
+                    .anyMatch(u -> !u.getId().equals(userId));
+        } else {
+            // Se sou o destinatário, "lida" = EU já li (isso o front nem usa hoje)
+            lida = mensagem.getUsuariosQueLeram().stream()
+                    .anyMatch(u -> u.getId().equals(userId));
+        }
 
         return new MensagemDTO(
                 mensagem.getId(),
@@ -24,6 +32,7 @@ public class MensagemMapper {
                 lida
         );
     }
+
 
     public static Mensagem fromDTO(MensagemDTO dto, User remetente, Chat chat) {
         Mensagem mensagem = new Mensagem();
