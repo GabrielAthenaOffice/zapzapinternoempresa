@@ -25,10 +25,12 @@ public class MensagemController {
     @GetMapping("/chat/{chatId}")
     public ResponseEntity<List<MensagemDTO>> listarMensagens(
             @PathVariable Long chatId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size,
             @AuthenticationPrincipal User userDetails) {
 
         Long userId = userDetails.getId();
-        List<MensagemDTO> mensagens = mensagemService.listarMensagens(chatId, userId);
+        List<MensagemDTO> mensagens = mensagemService.listarMensagensPaginado(chatId, userId, page, size);
 
         return new ResponseEntity<>(mensagens, HttpStatus.OK);
     }

@@ -9,6 +9,8 @@ import com.athena.chat.repositories.UserRepository;
 import com.athena.chat.repositories.chat.ChatRepository;
 import com.athena.chat.repositories.chat.MensagemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,28 +51,34 @@ public class MensagemService {
     }
 
     @Transactional
-    public List<MensagemDTO> listarMensagens(Long chatId, Long userId) {
-        Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new RuntimeException("Chat não encontrado"));
+    public List<MensagemDTO> listarMensagensPaginado(Long chatId, Long userId, int page, int size) {
 
         User usuario = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        // marca TODAS desse chat como lidas pra esse usuário
-        for (Mensagem m : chat.getMensagens()) {
-            if (m.getUsuariosQueLeram().stream().noneMatch(u -> u.getId().equals(userId))) {
+        // pega últimas mensagens primeiro (DESC)
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<Mensagem> pageMensagens =
+                mensagemRepository.findByChatIdOrderByEnviadoEmDesc(chatId, pageable);
+
+        List<Mensagem> mensagens = pageMensagens.getContent();
+
+        // marca como lidas APENAS as que vieram nessa página
+        for (Mensagem m : mensagens) {
+            boolean jaLeu = m.getUsuariosQueLeram().stream()
+                    .anyMatch(u -> u.getId().equals(userId));
+            if (!jaLeu) {
                 m.getUsuariosQueLeram().add(usuario);
             }
         }
-        // dirty checking do @Transactional já salva, se quiser pode usar mensagemRepository.saveAll()
+        mensagemRepository.saveAll(mensagens);
 
-        return chat.getMensagens().stream()
-                .sorted(Comparator.comparing(Mensagem::getEnviadoEm)) // garante ordem
+        // devolve pro front em ordem cronológica (ASC)
+        return mensagens.stream()
+                .sorted(Comparator.comparing(Mensagem::getEnviadoEm))
                 .map(m -> MensagemMapper.toDTO(m, userId))
                 .collect(Collectors.toList());
     }
-
-
 
     public void marcarComoLida(Long mensagemId, Long usuarioId) {
         Mensagem mensagem = mensagemRepository.findById(mensagemId)
