@@ -2,11 +2,15 @@ package com.athena.chat.services;
 
 import com.athena.chat.dto.GroupCreateDTO;
 import com.athena.chat.dto.GroupDTO;
+import com.athena.chat.dto.GroupUpdateDTO;
 import com.athena.chat.dto.mapper.GroupMapper;
+import com.athena.chat.dto.mapper.UserMapper;
+import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.chat.Chat;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.model.entities.permissions.TipoChat;
+import com.athena.chat.model.entities.permissions.UserRole;
 import com.athena.chat.repositories.GroupRepository;
 import com.athena.chat.repositories.UserRepository;
 import com.athena.chat.repositories.chat.ChatRepository;
@@ -14,6 +18,7 @@ import com.athena.chat.services.chat.ChatService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -45,13 +51,35 @@ public class GroupService {
                 .toList();
     }
 
-    public Optional<Stream<GroupDTO>> buscarPorId(Long id) {
-        Optional<Group> group = Optional.ofNullable(groupRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Nenhum grupo encontrado")));
+    @Transactional(readOnly = true)
+    public List<UserSimpleDTO> listarUsuariosDisponiveisParaGrupo(Long groupId) {
+        Group grupo = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Grupo não encontrado"));
 
-        return Optional.ofNullable((group.stream()
-                .map(GroupMapper::toDTO)));
+        Set<User> membros = grupo.getMembros();
+        Set<Long> idsMembros = membros.stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
+
+        // pega todos os usuários
+        List<User> todos = userRepository.findAll();
+
+        // filtra os que não estão no grupo
+        return todos.stream()
+                .filter(u -> !idsMembros.contains(u.getId()))
+                .map(UserMapper::toSimpleDTO)
+                .toList();
     }
+
+
+    @Transactional(readOnly = true)
+    public GroupDTO buscarPorId(Long groupId) {
+        Group grupo = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Grupo não encontrado"));
+
+        return GroupMapper.toDTO(grupo);
+    }
+
 
     public List<GroupDTO> buscarGruposPorCriador() {
         String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -123,28 +151,36 @@ public class GroupService {
     }
 
 
-    public GroupDTO atualizarGrupo(Long id, GroupDTO groupDTO) {
-        Group group = groupRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Grupo não encontrado com id: " + id));
-
-        group.setNome(groupDTO.getNome());
-        group.setDescricao(groupDTO.getDescricao());
-
-        Group atualizado = groupRepository.save(group);
-        return GroupMapper.toDTO(atualizado);
-    }
-
-
     @Transactional
-    public GroupDTO deletarGrupo(Long id) {
-        Group group = groupRepository.findById(id)
+    public GroupDTO atualizarGrupo(Long id, GroupUpdateDTO dto, User autenticado) {
+
+        Group grupo = groupRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Grupo não encontrado"));
 
-        groupRepository.delete(group);
+        // só criador ou ADMIN pode editar (ajusta se quiser)
+        boolean isCriador = grupo.getCriadoPor() != null
+                && grupo.getCriadoPor().getId().equals(autenticado.getId());
+        boolean isAdmin = autenticado.getRole() == UserRole.ADMIN;
 
-        log.warn("Grupo deletado: ID={}, Nome={}", group.getId(), group.getNome());
+        if (!isCriador && !isAdmin) {
+            throw new AccessDeniedException("Você não tem permissão para editar este grupo");
+        }
 
-        return GroupMapper.toDTO(group);
+        // atualiza grupo
+        grupo.setNome(dto.getNome());
+        grupo.setDescricao(dto.getDescricao());
+
+        // mantém nome do chat sincronizado
+        Chat chat = grupo.getChat();
+        if (chat != null) {
+            chat.setNome(dto.getNome());
+        }
+
+        // dentro de @Transactional, dirty checking já cuida.
+        // se quiser, pode forçar um save:
+        // groupRepository.save(grupo);
+
+        return GroupMapper.toDTO(grupo);
     }
 
     @Transactional
