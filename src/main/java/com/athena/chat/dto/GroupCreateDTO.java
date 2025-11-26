@@ -2,9 +2,12 @@ package com.athena.chat.dto;
 
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -15,4 +18,7 @@ public class GroupCreateDTO {
     private String nome;
 
     private String descricao;
+
+    @NotNull(message = "A lista de usuários é obrigatória")
+    private List<Long> usuariosIds;
 }

@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class GroupDTO {
     private Long id;
+    private Long chatId; // adicionei isso
     private String nome;
     private String descricao;
     private String criadoPor; // nome do criador
