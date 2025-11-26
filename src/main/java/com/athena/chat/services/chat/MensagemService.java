@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,14 +48,28 @@ public class MensagemService {
         return MensagemMapper.toDTO(salva, remetente.getId());
     }
 
+    @Transactional
     public List<MensagemDTO> listarMensagens(Long chatId, Long userId) {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new RuntimeException("Chat não encontrado"));
 
+        User usuario = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        // marca TODAS desse chat como lidas pra esse usuário
+        for (Mensagem m : chat.getMensagens()) {
+            if (m.getUsuariosQueLeram().stream().noneMatch(u -> u.getId().equals(userId))) {
+                m.getUsuariosQueLeram().add(usuario);
+            }
+        }
+        // dirty checking do @Transactional já salva, se quiser pode usar mensagemRepository.saveAll()
+
         return chat.getMensagens().stream()
+                .sorted(Comparator.comparing(Mensagem::getEnviadoEm)) // garante ordem
                 .map(m -> MensagemMapper.toDTO(m, userId))
                 .collect(Collectors.toList());
     }
+
 
 
     public void marcarComoLida(Long mensagemId, Long usuarioId) {

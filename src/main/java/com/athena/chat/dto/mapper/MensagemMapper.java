@@ -31,12 +31,17 @@ public class MensagemMapper {
         mensagem.setRemetente(remetente);
         mensagem.setConteudo(dto.getConteudo());
         mensagem.setEnviadoEm(LocalDateTime.now());
+
+        // remetente sempre considera como lida
+        mensagem.getUsuariosQueLeram().add(remetente);
+
         return mensagem;
     }
 
+
     public static SimpleMensagemDTO dtoToSimpleDto(MensagemDTO mensagem) {
         SimpleMensagemDTO simpleMensagemDTO = new SimpleMensagemDTO();
-        simpleMensagemDTO.setChatId(mensagem.getId());
+        simpleMensagemDTO.setChatId(mensagem.getChatId());
         simpleMensagemDTO.setNomeEnvio(mensagem.getRemetenteNome());
         simpleMensagemDTO.setConteudo(mensagem.getConteudo());
         return simpleMensagemDTO;
