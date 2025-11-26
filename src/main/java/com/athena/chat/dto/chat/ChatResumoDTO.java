@@ -15,6 +15,7 @@ import java.util.List;
 public class ChatResumoDTO {
 
     private Long id;
+    private Long groupId;
     private String nome;
     private TipoChat tipo;
 

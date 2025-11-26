@@ -11,16 +11,22 @@ import java.util.stream.Collectors;
 public class ChatMapper {
 
     public static ChatDTO toDTO(Chat chat) {
+        Long groupId = null;
+
+        if (chat.getGrupo() != null) {
+            groupId = chat.getGrupo().getId();
+        }
+
         return new ChatDTO(
                 chat.getId(),
+                groupId,
                 chat.getNome(),
-                chat.getParticipantes().stream()  // Stream<User>
-                        .map(UserMapper::toSimpleDTO)             // Extrai apenas o ID (Stream<Long>)
-                        .collect(Collectors.toSet()), // Coleta em um Set<Long>
+                chat.getParticipantes().stream()
+                        .map(UserMapper::toSimpleDTO)
+                        .collect(Collectors.toSet()),
                 chat.getCriadoEm()
         );
     }
-
 
     public static Chat toEntity(ChatCreateDTO dto) {
         Chat chat = new Chat();

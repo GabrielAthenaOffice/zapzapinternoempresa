@@ -14,10 +14,8 @@ import java.util.Set;
 @AllArgsConstructor
 public class ChatDTO {
     private Long id;
+    private Long groupId;
     private String nome;
     private Set<UserSimpleDTO> participantes;
     private LocalDateTime criadoEm;
-
-    public <R> ChatDTO(Long id, String nome, R collect) {
-    }
 }

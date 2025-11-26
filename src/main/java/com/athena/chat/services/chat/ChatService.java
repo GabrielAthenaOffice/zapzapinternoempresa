@@ -39,6 +39,7 @@ public class ChatService {
     private final UserRepository userRepository;
     private final MensagemRepository mensagemRepository;
 
+
     public ChatDTO buscarPorId(Long id) {
         Chat chatId = chatRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Chat não encontrado com ID: " + id));
@@ -102,8 +103,15 @@ public class ChatService {
                 .map(UserMapper::toSimpleDTO)
                 .collect(Collectors.toList());
 
+        // pega o groupId se existir
+        Long groupId = null;
+        if (chat.getGrupo() != null) {
+            groupId = chat.getGrupo().getId();
+        }
+
         ChatResumoDTO dto = new ChatResumoDTO();
         dto.setId(chat.getId());
+        dto.setGroupId(groupId);
         dto.setNome(chat.getNome());
         dto.setTipo(chat.getTipo());
         dto.setUltimoConteudo(ultimoConteudo);
@@ -114,16 +122,6 @@ public class ChatService {
 
         return dto;
     }
-
-
-    public void adicionarParticipante(Chat chat, User user) {
-        chat.getParticipantes().add(user);
-    }
-
-    public void removerParticipante(Chat chat, User user) {
-        chat.getParticipantes().remove(user);
-    }
-
 
     @Transactional
     public MensagemDTO salvarMensagem(Long chatId, MensagemDTO dto, String emailUsuario) {
