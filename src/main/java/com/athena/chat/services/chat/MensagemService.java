@@ -80,18 +80,5 @@ public class MensagemService {
                 .collect(Collectors.toList());
     }
 
-    public void marcarComoLida(Long mensagemId, Long usuarioId) {
-        Mensagem mensagem = mensagemRepository.findById(mensagemId)
-                .orElseThrow(() -> new RuntimeException("Mensagem não encontrada"));
-
-        User usuario = userRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        mensagem.getUsuariosQueLeram().add(usuario);
-        mensagemRepository.save(mensagem);
-    }
-
-
-
 }
 
