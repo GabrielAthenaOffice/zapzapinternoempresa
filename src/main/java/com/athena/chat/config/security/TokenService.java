@@ -43,11 +43,11 @@ public class TokenService {
         String jwt = generateToken(userPrincipal);
 
         ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt)
-                .path("/api")
+                .path("/")  // ✅ Disponível para todas as rotas
                 .maxAge(24 * 60 * 60)
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")
+                .secure(false)  // ✅ false para desenvolvimento local (HTTP)
+                .sameSite("Lax")  // ✅ Menos restritivo, funciona cross-port
                 .build();
 
         return cookie;
@@ -66,7 +66,7 @@ public class TokenService {
 
     public ResponseCookie getCleanCookie() {
         ResponseCookie cookie = ResponseCookie.from(jwtCookie)
-                .path("/api")
+                .path("/")
                 .build();
 
         return cookie;
