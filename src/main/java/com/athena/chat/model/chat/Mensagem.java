@@ -1,6 +1,5 @@
 package com.athena.chat.model.chat;
 
-
 import com.athena.chat.model.entities.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -36,12 +37,10 @@ public class Mensagem {
     private LocalDateTime enviadoEm = LocalDateTime.now();
 
     @ManyToMany
-    @JoinTable(
-            name = "mensagem_usuario_lida",
-            joinColumns = @JoinColumn(name = "mensagem_id"),
-            inverseJoinColumns = @JoinColumn(name = "usuario_id")
-    )
+    @JoinTable(name = "mensagem_usuario_lida", joinColumns = @JoinColumn(name = "mensagem_id"), inverseJoinColumns = @JoinColumn(name = "usuario_id"))
     private Set<User> usuariosQueLeram = new HashSet<>();
 
-}
+    @OneToMany(mappedBy = "mensagem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Anexo> anexos = new ArrayList<>();
 
+}

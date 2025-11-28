@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -17,4 +19,5 @@ public class MensagemDTO {
     private String conteudo;
     private LocalDateTime enviadoEm;
     private boolean lida; // true se o usuário atual ja leu
+    private List<AnexoDTO> anexos = new ArrayList<>();
 }

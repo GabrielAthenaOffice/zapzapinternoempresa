@@ -103,6 +103,19 @@
 			<version>2.8.9</version>
 		</dependency>
 
+		<!-- OkHttp para chamadas HTTP ao Supabase -->
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>4.12.0</version>
+		</dependency>
+
+		<!-- JSON parsing -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20240303</version>
+		</dependency>
 
 	</dependencies>
 
