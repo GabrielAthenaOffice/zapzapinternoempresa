@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,6 +65,9 @@ public class FileUploadController {
 
             // Upload do arquivo
             String filePath = supabaseStorageService.uploadFile(file, folder);
+
+            // Para buckets privados, a URL pública não funciona, mas retornamos o path
+            // O frontend deve usar o endpoint /view para acessar
             String publicUrl = supabaseStorageService.getPublicUrl(filePath);
 
             // Criar resposta
@@ -102,6 +106,25 @@ public class FileUploadController {
                     null,
                     null);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Endpoint para redirecionar para URL assinada (Secure View)
+     */
+    @GetMapping("/view")
+    public ResponseEntity<Void> viewFile(@RequestParam("path") String path) {
+        try {
+            // Gera URL assinada válida por 1 hora
+            String signedUrl = supabaseStorageService.getSignedUrl(path);
+
+            // Redireciona o navegador para a URL assinada
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(signedUrl))
+                    .build();
+        } catch (Exception e) {
+            log.error("Erro ao gerar URL assinada para: {}", path, e);
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -146,19 +169,6 @@ public class FileUploadController {
         }
 
         return ResponseEntity.ok(responses);
-    }
-
-    /**
-     * Obtém URL de download para um arquivo
-     */
-    @GetMapping("/{filePath}")
-    public ResponseEntity<String> getFileUrl(@PathVariable String filePath) {
-        try {
-            String url = supabaseStorageService.getPublicUrl(filePath);
-            return ResponseEntity.ok(url);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
     }
 
     /**

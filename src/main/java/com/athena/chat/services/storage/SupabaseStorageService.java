@@ -96,7 +96,6 @@ public class SupabaseStorageService {
                     supabaseConfig.getBucket().getName(),
                     filePath);
 
-            // Corpo da request com tempo de expiração (3600 segundos = 1 hora)
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("expiresIn", 3600);
 
@@ -118,9 +117,26 @@ public class SupabaseStorageService {
 
                 String responseBody = response.body().string();
                 JSONObject jsonResponse = new JSONObject(responseBody);
-                String signedUrl = jsonResponse.getString("signedURL");
+                String signedUrlPath = jsonResponse.getString("signedURL");
 
-                return supabaseConfig.getUrl() + signedUrl;
+                // CORREÇÃO: Garantir que a URL final tenha o prefixo correto
+                // Se o caminho retornado não começar com /storage/v1, adicionamos manualmente
+                if (!signedUrlPath.startsWith("/storage/v1")) {
+                    // Se começar com /, remove para não duplicar
+                    if (signedUrlPath.startsWith("/")) {
+                        signedUrlPath = "/storage/v1" + signedUrlPath;
+                    } else {
+                        signedUrlPath = "/storage/v1/" + signedUrlPath;
+                    }
+                }
+
+                // Removemos qualquer barra final da URL base para evitar duplicação
+                String baseUrl = supabaseConfig.getUrl();
+                if (baseUrl.endsWith("/")) {
+                    baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+                }
+
+                return baseUrl + signedUrlPath;
             }
 
         } catch (IOException e) {
