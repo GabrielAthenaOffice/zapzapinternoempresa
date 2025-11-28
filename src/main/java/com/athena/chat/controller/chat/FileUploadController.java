@@ -1,4 +1,4 @@
-package com.athena.chat.controller;
+package com.athena.chat.controller.chat;
 
 import com.athena.chat.config.SupabaseConfig;
 import com.athena.chat.dto.FileUploadResponse;

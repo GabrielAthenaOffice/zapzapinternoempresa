@@ -16,7 +16,7 @@ public class SupabaseConfig {
 
     @Data
     public static class Bucket {
-        private String name = "chat-attachments";
+        private String name = "mensagens-arquivos";
     }
 
 }
