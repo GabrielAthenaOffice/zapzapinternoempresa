@@ -8,7 +8,6 @@ import com.athena.chat.dto.UserDTO;
 import com.athena.chat.dto.simpledto.AuthenticationDTO;
 import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.User;
-import com.athena.chat.repositories.UserRepository;
 import com.athena.chat.services.LoginService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

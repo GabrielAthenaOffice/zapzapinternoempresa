@@ -3,9 +3,7 @@ package com.athena.chat.controller;
 import com.athena.chat.dto.GroupCreateDTO;
 import com.athena.chat.dto.GroupDTO;
 import com.athena.chat.dto.GroupUpdateDTO;
-import com.athena.chat.dto.mapper.GroupMapper;
 import com.athena.chat.dto.simpledto.UserSimpleDTO;
-import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.services.GroupService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -17,8 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/grupos")

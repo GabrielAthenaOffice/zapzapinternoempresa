@@ -2,10 +2,8 @@ package com.athena.chat.controller.chat;
 
 import com.athena.chat.dto.chat.MensagemDTO;
 import com.athena.chat.model.entities.User;
-import com.athena.chat.services.LoginService;
 import com.athena.chat.services.chat.MensagemService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

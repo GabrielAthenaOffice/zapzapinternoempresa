@@ -1,6 +1,6 @@
 package com.athena.chat.model.chat;
 
-import com.athena.chat.model.entities.Group;
+
 import com.athena.chat.model.entities.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

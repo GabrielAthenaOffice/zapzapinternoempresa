@@ -3,9 +3,7 @@ package com.athena.chat.dto.mapper;
 import com.athena.chat.dto.chat.ChatCreateDTO;
 import com.athena.chat.dto.chat.ChatDTO;
 import com.athena.chat.model.chat.Chat;
-import com.athena.chat.model.entities.User;
 
-import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 public class ChatMapper {

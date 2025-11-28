@@ -3,7 +3,6 @@ package com.athena.chat.model.chat;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.model.entities.permissions.TipoChat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import jakarta.persistence.Id;
