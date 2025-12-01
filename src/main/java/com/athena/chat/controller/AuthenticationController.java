@@ -15,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,6 +49,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("register")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIDER_DE_SETOR')")
     public ResponseEntity<User> register(@RequestBody @Valid UserCreateDTO data) {
         User registrar = loginService.registrar(data);
 
@@ -55,14 +57,16 @@ public class AuthenticationController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<UserDTO> atualizarUsuario(@PathVariable Long id,
-                                                    @RequestBody @Valid UserDTO userDTO) {
+            @RequestBody @Valid UserDTO userDTO) {
         UserDTO user = loginService.atualizarUsuario(id, userDTO);
 
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> deletarUsuario(@PathVariable Long id) {
         UserDTO deletarUsuario = loginService.deletarUsuario(id);
 
@@ -71,7 +75,7 @@ public class AuthenticationController {
 
     @GetMapping("/username")
     public String currentUsername(Authentication authentication) {
-        if(authentication != null) {
+        if (authentication != null) {
             return authentication.getName();
         } else {
             return "NULL";
@@ -96,6 +100,5 @@ public class AuthenticationController {
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new MessageResponse("You have been signed out"));
     }
-
 
 }
