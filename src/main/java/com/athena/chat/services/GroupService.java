@@ -10,7 +10,6 @@ import com.athena.chat.model.chat.Chat;
 import com.athena.chat.model.entities.Group;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.model.entities.permissions.TipoChat;
-import com.athena.chat.model.entities.permissions.UserRole;
 import com.athena.chat.repositories.GroupRepository;
 import com.athena.chat.repositories.UserRepository;
 import com.athena.chat.repositories.chat.ChatRepository;
@@ -35,6 +34,7 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
+    private final PermissionService permissionService;
 
     public List<GroupDTO> listarGrupos() throws IllegalAccessException {
         List<Group> grupos = groupRepository.findAll();
@@ -68,7 +68,6 @@ public class GroupService {
                 .toList();
     }
 
-
     @Transactional(readOnly = true)
     public GroupDTO buscarPorId(Long groupId) {
         Group grupo = groupRepository.findById(groupId)
@@ -76,7 +75,6 @@ public class GroupService {
 
         return GroupMapper.toDTO(grupo);
     }
-
 
     public List<GroupDTO> buscarGruposPorCriador() {
         String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -147,20 +145,16 @@ public class GroupService {
         return groupDTO;
     }
 
-
     @Transactional
     public GroupDTO atualizarGrupo(Long id, GroupUpdateDTO dto, User autenticado) {
 
         Group grupo = groupRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Grupo não encontrado"));
 
-        // só criador ou ADMIN pode editar (ajusta se quiser)
-        boolean isCriador = grupo.getCriadoPor() != null
-                && grupo.getCriadoPor().getId().equals(autenticado.getId());
-        boolean isAdmin = autenticado.getRole() == UserRole.ADMIN;
-
-        if (!isCriador && !isAdmin) {
-            throw new AccessDeniedException("Você não tem permissão para editar este grupo");
+        // Verifica se o usuário pode atualizar o grupo (criador ou ADMIN)
+        if (!permissionService.canUpdateGroup(autenticado, id)) {
+            throw new AccessDeniedException(
+                    "Você não tem permissão para editar este grupo. Apenas o criador ou ADMIN podem fazer isso.");
         }
 
         // atualiza grupo
@@ -229,6 +223,17 @@ public class GroupService {
 
         User usuario = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+
+        // Obtém o usuário autenticado
+        String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
+        User autenticado = userRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário autenticado não encontrado."));
+
+        // Verifica se o usuário pode remover membros do grupo (criador ou ADMIN)
+        if (!permissionService.canRemoveGroupMember(autenticado, groupId)) {
+            throw new AccessDeniedException(
+                    "Você não tem permissão para remover membros deste grupo. Apenas o criador ou ADMIN podem fazer isso.");
+        }
 
         if (!grupo.getMembros().contains(usuario)) {
             throw new IllegalArgumentException("Usuário não faz parte deste grupo");

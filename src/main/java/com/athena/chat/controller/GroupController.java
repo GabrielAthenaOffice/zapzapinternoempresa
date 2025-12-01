@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,32 +57,32 @@ public class GroupController {
 
     @PutMapping("/{id}")
     public ResponseEntity<GroupDTO> atualizarGrupo(@PathVariable Long id,
-                                                   @RequestBody @Valid GroupUpdateDTO dto,
-                                                   @AuthenticationPrincipal User userDetails) {
+            @RequestBody @Valid GroupUpdateDTO dto,
+            @AuthenticationPrincipal User userDetails) {
         GroupDTO atualizado = groupService.atualizarGrupo(id, dto, userDetails);
         return ResponseEntity.ok(atualizado);
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIDER_DE_SETOR', 'FUNCIONARIO')")
     public ResponseEntity<GroupDTO> criarGrupo(@RequestBody @Valid GroupCreateDTO dto,
-                                               @AuthenticationPrincipal User userDetails) {
+            @AuthenticationPrincipal User userDetails) {
         GroupDTO grupoCriado = groupService.criarGrupo(dto, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED).body(grupoCriado);
     }
 
     @PostMapping("/{groupId}/usuarios/{userId}")
     public ResponseEntity<GroupDTO> adicionarUsuarioAoGrupo(@PathVariable Long groupId,
-                                                            @PathVariable Long userId) {
+            @PathVariable Long userId) {
         GroupDTO grupoAtualizado = groupService.adicionarUsuarioAoGrupo(groupId, userId);
         return ResponseEntity.ok(grupoAtualizado);
     }
 
     @DeleteMapping("/{groupId}/usuarios/{userId}")
     public ResponseEntity<GroupDTO> removerUsuarioDoGrupo(@PathVariable Long groupId,
-                                                          @PathVariable Long userId) {
+            @PathVariable Long userId) {
         GroupDTO grupoAtualizado = groupService.removerUsuarioDoGrupo(groupId, userId);
         return ResponseEntity.ok(grupoAtualizado);
     }
-
 
 }
