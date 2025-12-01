@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -23,6 +24,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -33,40 +35,39 @@ public class SecurityConfig {
         return httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // 🔑 Mudar para IF_REQUIRED para permitir cookies em requests autenticados
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(
                         authorize -> authorize
-                                //SWAGGER
+                                // SWAGGER
                                 .requestMatchers(
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
                                         "/webjars/**",
-                                        "/swagger-resources/**"
-                                ).permitAll()
-                                // Liberar login e registro
+                                        "/swagger-resources/**")
+                                .permitAll()
+                                // Liberar login
                                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/auth/user").authenticated() // Agora autenticado mas permitido
+                                // Registro apenas para ADMIN e LIDER_DE_SETOR
+                                .requestMatchers(HttpMethod.POST, "/auth/register")
+                                .hasAnyRole("ADMIN", "LIDER_DE_SETOR")
+                                .requestMatchers(HttpMethod.GET, "/auth/user").authenticated() // Agora autenticado mas
+                                                                                               // permitido
                                 .requestMatchers(HttpMethod.POST, "/auth/singout").authenticated() // Logout
                                 .requestMatchers("/ws/**").permitAll() // libera websocket + sockJS
                                 .requestMatchers("/app/**").permitAll()
 
-                                // Regras para API
-                                .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/**").authenticated()
-                                .anyRequest().authenticated()
-                )
+                                // Regras para API - controle granular via @PreAuthorize nos controllers
+                                .requestMatchers("/api/**").authenticated()
+                                .anyRequest().authenticated())
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
 
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
@@ -98,7 +99,6 @@ public class SecurityConfig {
                 "/swagger-resources/**",
                 "/configuration/security",
                 "/swagger-ui.html",
-                "webjars/**"
-        ));
+                "webjars/**"));
     }
 }
