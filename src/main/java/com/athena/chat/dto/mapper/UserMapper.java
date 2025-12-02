@@ -29,7 +29,7 @@ public class UserMapper {
     }
 
     public static UserSimpleDTO toSimpleDTO(User user) {
-        return new UserSimpleDTO(user.getId(), user.getNome(), user.getEmail());
+        return new UserSimpleDTO(user.getId(), user.getNome(), user.getEmail(), user.getRole());
     }
 
     public static User toUser(UserDTO dto) {

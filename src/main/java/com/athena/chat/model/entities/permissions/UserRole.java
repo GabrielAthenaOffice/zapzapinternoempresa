@@ -28,7 +28,7 @@ public enum UserRole {
 
         switch (this) {
             case ADMIN:
-                // ADMIN tem todas as permissões
+                // ADMIN tem todas as permissoes
                 permissions.add(Permission.USER_CREATE);
                 permissions.add(Permission.USER_READ);
                 permissions.add(Permission.USER_UPDATE);
@@ -61,7 +61,7 @@ public enum UserRole {
                 break;
 
             case FUNCIONARIO:
-                // FUNCIONARIO tem permissoes operacionais básicas
+                // FUNCIONARIO tem permissoes operacionais basicas
                 permissions.add(Permission.USER_READ);
                 permissions.add(Permission.GROUP_CREATE);
                 permissions.add(Permission.GROUP_READ);

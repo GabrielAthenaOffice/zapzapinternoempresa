@@ -1,5 +1,6 @@
 package com.athena.chat.dto.simpledto;
 
+import com.athena.chat.model.entities.permissions.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,4 +12,5 @@ public class UserSimpleDTO {
     private Long id;
     private String nome;
     private String email;
+    private UserRole role;
 }

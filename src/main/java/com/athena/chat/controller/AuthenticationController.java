@@ -87,7 +87,7 @@ public class AuthenticationController {
         User userDetails = (User) authentication.getPrincipal();
 
         UserSimpleDTO userSimpleDTO = new UserSimpleDTO(userDetails.getId(),
-                userDetails.getNome(), userDetails.getEmail());
+                userDetails.getNome(), userDetails.getEmail(), userDetails.getRole());
 
         return ResponseEntity.ok().body(userSimpleDTO);
     }

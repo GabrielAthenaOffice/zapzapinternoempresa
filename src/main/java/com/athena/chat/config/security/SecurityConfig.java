@@ -44,7 +44,9 @@ public class SecurityConfig {
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
                                         "/webjars/**",
-                                        "/swagger-resources/**")
+                                        "/swagger-resources/**",
+                                        "/configuration/security",
+                                        "/configuration/ui")
                                 .permitAll()
                                 // Liberar login
                                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
@@ -89,16 +91,5 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web -> web.ignoring().requestMatchers(
-                "/v2/api-docs",
-                "/configuration/ui",
-                "/swagger-resources/**",
-                "/configuration/security",
-                "/swagger-ui.html",
-                "webjars/**"));
     }
 }

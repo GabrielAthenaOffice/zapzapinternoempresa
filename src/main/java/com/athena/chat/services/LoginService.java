@@ -46,7 +46,7 @@ public class LoginService {
         User userDetails = (User) authentication.getPrincipal();
         ResponseCookie jwtCookie = tokenService.generateCookie(userDetails);
 
-        UserSimpleDTO userSimpleDTO = new UserSimpleDTO(userDetails.getId(), userDetails.getNome(), userDetails.getEmail());
+        UserSimpleDTO userSimpleDTO = new UserSimpleDTO(userDetails.getId(), userDetails.getNome(), userDetails.getEmail(), userDetails.getRole());
 
 
         return new LoginResponseDTO(userSimpleDTO, jwtCookie.toString());
