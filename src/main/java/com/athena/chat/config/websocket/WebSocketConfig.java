@@ -16,7 +16,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:3000", "http://localhost:4200") // Ajuste conforme seu frontend
+                .setAllowedOriginPatterns("https://frontzapzapinterno.vercel.app", "http://localhost:3000", "http://localhost:4200") // Ajuste conforme seu frontend
                 .setHandshakeHandler(new DefaultHandshakeHandler())
                 .addInterceptors(new HttpSessionHandshakeInterceptor())
                 .withSockJS();
