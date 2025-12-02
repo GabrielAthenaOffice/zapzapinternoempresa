@@ -85,7 +85,7 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(List.of("http://localhost:3000")); // Específico para desenvolvimento
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Métodos explícitos
         configuration.setAllowedHeaders(List.of("*")); // Headers permitidos
-        configuration.setAllowCredentials(true); // 🔑 Permite cookies/credenciais
+        configuration.setAllowCredentials(true); // Permite cookies/credenciais
         configuration.setMaxAge(3600L); // Cache de 1 hora
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
