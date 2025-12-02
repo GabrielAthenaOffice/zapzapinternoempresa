@@ -25,6 +25,12 @@ public class TokenService {
     @Value("${api.security.cookies.secrets}")
     private String jwtCookie;
 
+    @Value("${api.security.cookie.secure}")
+    private boolean cookieSecure;
+
+    @Value("${api.security.cookie.samesite}")
+    private String cookieSameSite;
+
     public String generateToken(User user) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
@@ -33,7 +39,7 @@ public class TokenService {
                     .withSubject(user.getEmail()) // verificação através do email
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
-        } catch(JWTCreationException exception){
+        } catch (JWTCreationException exception) {
             throw new RuntimeException("Erro para gerar o token", exception);
         }
     }
@@ -42,20 +48,20 @@ public class TokenService {
         String jwt = generateToken(userPrincipal);
 
         ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt)
-                .path("/")  // ✅ Disponível para todas as rotas
+                .path("/") // ✅ Disponível para todas as rotas
                 .maxAge(24 * 60 * 60)
                 .httpOnly(true)
-                .secure(false)  // ✅ false para desenvolvimento local (HTTP)
-                .sameSite("Lax")  // ✅ Menos restritivo, funciona cross-port
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
                 .build();
 
         return cookie;
     }
 
-    public String getJwtFromCookies(HttpServletRequest httpServletRequest){
+    public String getJwtFromCookies(HttpServletRequest httpServletRequest) {
         Cookie cookie = WebUtils.getCookie(httpServletRequest, jwtCookie);
 
-        if(cookie != null) {
+        if (cookie != null) {
             return cookie.getValue();
         } else {
             return null;
@@ -64,8 +70,12 @@ public class TokenService {
     }
 
     public ResponseCookie getCleanCookie() {
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie)
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie, "")
                 .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
                 .build();
 
         return cookie;
