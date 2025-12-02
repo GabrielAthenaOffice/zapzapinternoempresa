@@ -19,7 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-
 @Service
 @RequiredArgsConstructor
 public class LoginService {
@@ -31,14 +30,9 @@ public class LoginService {
     public LoginResponseDTO login(AuthenticationDTO data) {
         Authentication authentication = null;
 
-        System.out.println("Senha banco: " + userRepository.findByEmail(data.email()).get().getSenha());
-        System.out.println("Senha digitada: " + data.senha());
-        System.out.println("Senha confere? " + new BCryptPasswordEncoder().matches(data.senha(), userRepository.findByEmail(data.email()).get().getSenha()));
-
         try {
             authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(data.email(), data.senha())
-            );
+                    new UsernamePasswordAuthenticationToken(data.email(), data.senha()));
         } catch (AuthenticationException exception) {
             throw new RuntimeException("Bad credentials", exception);
         }
@@ -46,8 +40,8 @@ public class LoginService {
         User userDetails = (User) authentication.getPrincipal();
         ResponseCookie jwtCookie = tokenService.generateCookie(userDetails);
 
-        UserSimpleDTO userSimpleDTO = new UserSimpleDTO(userDetails.getId(), userDetails.getNome(), userDetails.getEmail(), userDetails.getRole());
-
+        UserSimpleDTO userSimpleDTO = new UserSimpleDTO(userDetails.getId(), userDetails.getNome(),
+                userDetails.getEmail(), userDetails.getRole());
 
         return new LoginResponseDTO(userSimpleDTO, jwtCookie.toString());
     }
@@ -90,8 +84,5 @@ public class LoginService {
 
         return UserMapper.toDTO(user);
     }
-
-
-
 
 }

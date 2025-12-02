@@ -14,8 +14,7 @@ public class UserMapper {
                 user.getEmail(),
                 user.getSenha(),
                 user.getCargo(),
-                user.getRole()
-        );
+                user.getRole());
     }
 
     public static User toEntity(UserCreateDTO dto) {
@@ -43,4 +42,3 @@ public class UserMapper {
     }
 
 }
-
