@@ -46,6 +46,12 @@ public class FileUploadController {
             "image/png",
             "image/gif",
             "image/webp",
+            // Áudio
+            "audio/webm",
+            "audio/mp4",
+            "audio/mpeg",
+            "audio/ogg",
+            "audio/wav",
             // Outros
             "application/zip",
             "application/x-rar-compressed");

@@ -6,6 +6,7 @@ import com.athena.chat.dto.chat.SimpleMensagemDTO;
 import com.athena.chat.model.chat.Anexo;
 import com.athena.chat.model.chat.Chat;
 import com.athena.chat.model.chat.Mensagem;
+import com.athena.chat.model.chat.TipoAnexo;
 import com.athena.chat.model.entities.User;
 
 import java.time.LocalDateTime;
@@ -64,6 +65,8 @@ public class MensagemMapper {
                         anexo.setTamanhoBytes(anexoDto.getTamanhoBytes());
                         anexo.setUrlPublica(anexoDto.getUrlPublica());
                         anexo.setCaminhoSupabase(anexoDto.getCaminhoSupabase()); // Importante!
+                        anexo.setTipoAnexo(anexoDto.getTipoAnexo() != null ? anexoDto.getTipoAnexo()
+                                : detectarTipoAnexo(anexoDto.getTipoMime()));
                         anexo.setMensagem(mensagem); // Vínculo bidirecional
                         return anexo;
                     })
@@ -91,9 +94,38 @@ public class MensagemMapper {
         dto.setTamanhoBytes(anexo.getTamanhoBytes());
         dto.setUrlPublica(anexo.getUrlPublica());
         dto.setCaminhoSupabase(anexo.getCaminhoSupabase()); // ADICIONADO
+        dto.setTipoAnexo(anexo.getTipoAnexo());
         if (anexo.getUploadedEm() != null) {
             dto.setUploadedEm(anexo.getUploadedEm().format(DateTimeFormatter.ISO_DATE_TIME));
         }
         return dto;
+    }
+
+    /**
+     * Detecta automaticamente o tipo de anexo baseado no MIME type
+     */
+    private static TipoAnexo detectarTipoAnexo(String mimeType) {
+        if (mimeType == null) {
+            return TipoAnexo.OUTRO;
+        }
+
+        if (mimeType.startsWith("image/")) {
+            return TipoAnexo.IMAGEM;
+        }
+        if (mimeType.startsWith("audio/")) {
+            return TipoAnexo.AUDIO;
+        }
+        if (mimeType.startsWith("video/")) {
+            return TipoAnexo.VIDEO;
+        }
+        if (mimeType.equals("application/pdf") ||
+                mimeType.contains("document") ||
+                mimeType.contains("sheet") ||
+                mimeType.contains("presentation") ||
+                mimeType.equals("text/plain")) {
+            return TipoAnexo.DOCUMENTO;
+        }
+
+        return TipoAnexo.OUTRO;
     }
 }

@@ -37,6 +37,10 @@ public class Anexo {
     @Column(nullable = false, length = 2048)
     private String urlPublica;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoAnexo tipoAnexo = TipoAnexo.OUTRO;
+
     private LocalDateTime uploadedEm = LocalDateTime.now();
 
 }

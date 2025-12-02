@@ -3,6 +3,7 @@ package com.athena.chat.services.chat;
 import com.athena.chat.dto.chat.AnexoDTO;
 import com.athena.chat.model.chat.Anexo;
 import com.athena.chat.model.chat.Mensagem;
+import com.athena.chat.model.chat.TipoAnexo;
 import com.athena.chat.repositories.AnexoRepository;
 import com.athena.chat.services.storage.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class AnexoService {
         anexo.setTamanhoBytes(file.getSize());
         anexo.setCaminhoSupabase(caminhoSupabase);
         anexo.setUrlPublica(urlPublica);
+        anexo.setTipoAnexo(detectarTipoAnexo(file.getContentType()));
 
         return anexoRepository.save(anexo);
     }
@@ -77,8 +79,38 @@ public class AnexoService {
         dto.setTipoMime(anexo.getTipoMime());
         dto.setTamanhoBytes(anexo.getTamanhoBytes());
         dto.setUrlPublica(anexo.getUrlPublica());
+        dto.setCaminhoSupabase(anexo.getCaminhoSupabase());
+        dto.setTipoAnexo(anexo.getTipoAnexo());
         dto.setUploadedEm(anexo.getUploadedEm().format(DateTimeFormatter.ISO_DATE_TIME));
         return dto;
+    }
+
+    /**
+     * Detecta automaticamente o tipo de anexo baseado no MIME type
+     */
+    private TipoAnexo detectarTipoAnexo(String mimeType) {
+        if (mimeType == null) {
+            return TipoAnexo.OUTRO;
+        }
+
+        if (mimeType.startsWith("image/")) {
+            return TipoAnexo.IMAGEM;
+        }
+        if (mimeType.startsWith("audio/")) {
+            return TipoAnexo.AUDIO;
+        }
+        if (mimeType.startsWith("video/")) {
+            return TipoAnexo.VIDEO;
+        }
+        if (mimeType.equals("application/pdf") ||
+                mimeType.contains("document") ||
+                mimeType.contains("sheet") ||
+                mimeType.contains("presentation") ||
+                mimeType.equals("text/plain")) {
+            return TipoAnexo.DOCUMENTO;
+        }
+
+        return TipoAnexo.OUTRO;
     }
 
 }

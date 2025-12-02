@@ -1,5 +1,6 @@
 package com.athena.chat.dto.chat;
 
+import com.athena.chat.model.chat.TipoAnexo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,7 @@ public class AnexoDTO {
     private String tipoMime;
     private Long tamanhoBytes;
     private String urlPublica;
-    private String caminhoSupabase; // ADICIONADO
+    private String caminhoSupabase;
+    private TipoAnexo tipoAnexo;
     private String uploadedEm;
 }
