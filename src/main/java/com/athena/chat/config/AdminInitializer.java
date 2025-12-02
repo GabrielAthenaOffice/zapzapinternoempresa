@@ -23,34 +23,15 @@ public class AdminInitializer {
         return args -> {
             if (userRepository.findByEmail("admin@athena.com").isEmpty()) {
                 User admin = new User();
-                admin.setNome("Administrador");
-                admin.setEmail("admin@athena.com");
-                admin.setSenha(passwordEncoder.encode("admin123"));
+                admin.setNome("Diretor");
+                admin.setEmail("principal@athena.com");
+                admin.setSenha(passwordEncoder.encode("Athena2025@"));
                 admin.setRole(UserRole.ADMIN);
 
                 userRepository.save(admin);
-                System.out.println("Usuário ADMIN inicial criado com sucesso.");
             }
         };
     }
-
-    @Bean
-    public CommandLineRunner initGruposPadroes(GroupRepository groupRepository, UserRepository userRepository) {
-        return args -> {
-            String[] setores = {"CONTABILIDADE", "FINANCEIRO", "TECNOLOGIA DA INFORMAÇÃO",
-                    "MARKETING", "RECEPÇÃO"};
-
-            for (String setor : setores) {
-                if (groupRepository.findByNomeIgnoreCase(setor).isEmpty()) {
-                    Group grupo = new Group();
-                    grupo.setNome(setor);
-                    grupo.setDescricao("Grupo padrão do setor " + setor.toLowerCase());
-                    groupRepository.save(grupo);
-                }
-            }
-        };
-    }
-
 
 
 }
