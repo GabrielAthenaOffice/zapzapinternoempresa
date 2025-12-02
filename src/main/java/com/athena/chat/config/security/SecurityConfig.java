@@ -82,7 +82,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000")); // Específico para desenvolvimento
+        configuration.setAllowedOriginPatterns(List.of("https://frontzapzapinterno.vercel.app/")); // Específico para desenvolvimento
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Métodos explícitos
         configuration.setAllowedHeaders(List.of("*")); // Headers permitidos
         configuration.setAllowCredentials(true); // Permite cookies/credenciais
