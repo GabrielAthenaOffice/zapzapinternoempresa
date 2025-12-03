@@ -33,194 +33,199 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ChatService {
 
-    private final ChatRepository chatRepository;
-    private final UserRepository userRepository;
-    private final MensagemRepository mensagemRepository;
+        private final ChatRepository chatRepository;
+        private final UserRepository userRepository;
+        private final MensagemRepository mensagemRepository;
 
+        public ChatDTO buscarPorId(Long id) {
+                Chat chatId = chatRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException("Chat não encontrado com ID: " + id));
 
-    public ChatDTO buscarPorId(Long id) {
-        Chat chatId = chatRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Chat não encontrado com ID: " + id));
-
-        return ChatMapper.toDTO(chatId);
-    }
-
-    public List<ChatDTO> listarTodos() {
-
-        List<Chat> chatList = chatRepository.findAll();
-
-        return chatList.stream()
-                .map(ChatMapper::toDTO)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<ChatResumoDTO> listarChatsDoUsuario(Long userId) {
-        List<Chat> chats = chatRepository.findByParticipantes_Id(userId);
-
-        return chats.stream()
-                .map(chat -> toChatResumo(chat, userId))
-                // ordenar por data da ultima mensagem (nulls por último)
-                .sorted(Comparator.comparing(
-                        ChatResumoDTO::getUltimaMensagemEm,
-                        Comparator.nullsLast(Comparator.reverseOrder())
-                ))
-                .collect(Collectors.toList());
-    }
-
-    private ChatResumoDTO toChatResumo(Chat chat, Long userId) {
-        // última mensagem
-        Mensagem ultima = chat.getMensagens().stream()
-                .max(Comparator.comparing(Mensagem::getEnviadoEm))
-                .orElse(null);
-
-        String ultimoConteudo = ultima != null ? ultima.getConteudo() : null;
-        LocalDateTime ultimaMensagemEm = ultima != null ? ultima.getEnviadoEm() : null;
-
-        // não lidas pro usuário
-        long naoLidas = 0L;
-        if (ultima != null) {
-            naoLidas = chat.getMensagens().stream()
-                    .filter(m -> m.getUsuariosQueLeram().stream()
-                            .noneMatch(u -> u.getId().equals(userId)))
-                    .count();
+                return ChatMapper.toDTO(chatId);
         }
 
-        // nome do “outro usuario” em chat privado
-        String outroUsuario = null;
-        if (chat.getTipo() == TipoChat.PRIVADO) {
-            outroUsuario = chat.getParticipantes().stream()
-                    .filter(u -> !u.getId().equals(userId))
-                    .map(User::getNome)
-                    .findFirst()
-                    .orElse(chat.getNome());
+        public List<ChatDTO> listarTodos() {
+
+                List<Chat> chatList = chatRepository.findAll();
+
+                return chatList.stream()
+                                .map(ChatMapper::toDTO)
+                                .toList();
         }
 
-        // participantes em UserSimpleDTO
-        List<UserSimpleDTO> participantes = chat.getParticipantes().stream()
-                .map(UserMapper::toSimpleDTO)
-                .collect(Collectors.toList());
+        @Transactional(readOnly = true)
+        public List<ChatResumoDTO> listarChatsDoUsuario(Long userId) {
+                List<Chat> chats = chatRepository.findByParticipantes_Id(userId);
 
-        // pega o groupId se existir
-        Long groupId = null;
-        if (chat.getGrupo() != null) {
-            groupId = chat.getGrupo().getId();
+                return chats.stream()
+                                .map(chat -> toChatResumo(chat, userId))
+                                // ordenar por data da ultima mensagem (nulls por último)
+                                .sorted(Comparator.comparing(
+                                                ChatResumoDTO::getUltimaMensagemEm,
+                                                Comparator.nullsLast(Comparator.reverseOrder())))
+                                .collect(Collectors.toList());
         }
 
-        ChatResumoDTO dto = new ChatResumoDTO();
-        dto.setId(chat.getId());
-        dto.setGroupId(groupId);
-        dto.setNome(chat.getNome());
-        dto.setTipo(chat.getTipo());
-        dto.setUltimoConteudo(ultimoConteudo);
-        dto.setUltimaMensagemEm(ultimaMensagemEm);
-        dto.setOutroUsuario(outroUsuario);
-        dto.setQuantidadeNaoLidas(naoLidas);
-        dto.setParticipantes(participantes);
+        private ChatResumoDTO toChatResumo(Chat chat, Long userId) {
+                // última mensagem
+                Mensagem ultima = chat.getMensagens().stream()
+                                .max(Comparator.comparing(Mensagem::getEnviadoEm))
+                                .orElse(null);
 
-        return dto;
-    }
+                String ultimoConteudo = ultima != null ? ultima.getConteudo() : null;
+                LocalDateTime ultimaMensagemEm = ultima != null ? ultima.getEnviadoEm() : null;
 
-    @Transactional
-    public MensagemDTO salvarMensagem(Long chatId, MensagemDTO dto, String emailUsuario) {
-        Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new IllegalArgumentException("Chat não encontrado"));
+                // não lidas pro usuário
+                long naoLidas = 0L;
+                if (ultima != null) {
+                        naoLidas = chat.getMensagens().stream()
+                                        .filter(m -> m.getUsuariosQueLeram().stream()
+                                                        .noneMatch(u -> u.getId().equals(userId)))
+                                        .count();
+                }
 
-        User remetente = userRepository.findByNome(emailUsuario)
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não autenticado"));
+                // nome do “outro usuario” em chat privado
+                String outroUsuario = null;
+                String fotoOutroUsuario = null;
+                if (chat.getTipo() == TipoChat.PRIVADO) {
+                        User outro = chat.getParticipantes().stream()
+                                        .filter(u -> !u.getId().equals(userId))
+                                        .findFirst()
+                                        .orElse(null);
 
-        Mensagem novaMensagem = MensagemMapper.fromDTO(dto, remetente, chat);
+                        if (outro != null) {
+                                outroUsuario = outro.getNome();
+                                fotoOutroUsuario = outro.getFotoPerfil();
+                        } else {
+                                outroUsuario = chat.getNome();
+                        }
+                }
 
-        Mensagem salva = mensagemRepository.save(novaMensagem);
+                // participantes em UserSimpleDTO
+                List<UserSimpleDTO> participantes = chat.getParticipantes().stream()
+                                .map(UserMapper::toSimpleDTO)
+                                .collect(Collectors.toList());
 
-        return MensagemMapper.toDTO(salva, remetente.getId());
-    }
+                // pega o groupId se existir
+                Long groupId = null;
+                if (chat.getGrupo() != null) {
+                        groupId = chat.getGrupo().getId();
+                }
 
-    @Transactional
-    public ChatDTO criarChatPrivado(Long usuario1Id, Long usuario2Id) {
+                ChatResumoDTO dto = new ChatResumoDTO();
+                dto.setId(chat.getId());
+                dto.setGroupId(groupId);
+                dto.setNome(chat.getNome());
+                dto.setTipo(chat.getTipo());
+                dto.setUltimoConteudo(ultimoConteudo);
+                dto.setUltimaMensagemEm(ultimaMensagemEm);
+                dto.setOutroUsuario(outroUsuario);
+                dto.setFotoOutroUsuario(fotoOutroUsuario);
+                dto.setQuantidadeNaoLidas(naoLidas);
+                dto.setParticipantes(participantes);
 
-        // checa se ja existe algum chat entre os dois
-        Optional<Chat> chatExistente = chatRepository
-                .findChatPrivadoEntreUsuarios(usuario1Id, usuario2Id);
-
-        // se existir, ele retorna o que existe entre od dois
-        if (chatExistente.isPresent()) {
-            return ChatMapper.toDTO(chatExistente.get());
+                return dto;
         }
 
-        // busca padrao pelos usuarios
-        User user1 = userRepository.findById(usuario1Id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuário 1 não encontrado"));
-        User user2 = userRepository.findById(usuario2Id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuário 2 não encontrado"));
+        @Transactional
+        public MensagemDTO salvarMensagem(Long chatId, MensagemDTO dto, String emailUsuario) {
+                Chat chat = chatRepository.findById(chatId)
+                                .orElseThrow(() -> new IllegalArgumentException("Chat não encontrado"));
 
-        String nomeChat = user1.getNome() + " - " + user2.getNome();
+                User remetente = userRepository.findByNome(emailUsuario)
+                                .orElseThrow(() -> new IllegalArgumentException("Usuário não autenticado"));
 
-        // monta grupo
-        Group grupo = new Group();
-        grupo.setNome(nomeChat);
-        grupo.setDescricao("");
-        grupo.setCriadoPor(user1);
-        grupo.getMembros().add(user1);
-        grupo.getMembros().add(user2);
+                Mensagem novaMensagem = MensagemMapper.fromDTO(dto, remetente, chat);
 
-        // monta chat
-        Chat chat = new Chat();
-        chat.setTipo(TipoChat.PRIVADO);
-        chat.setNome(nomeChat);
-        chat.getParticipantes().add(user1);
-        chat.getParticipantes().add(user2);
+                Mensagem salva = mensagemRepository.save(novaMensagem);
 
-        // liga os dois lados
-        chat.setGrupo(grupo);
-        grupo.setChat(chat);
-
-        // salva so o CHAT (lado dono, com cascade = ALL)
-        Chat salvo = chatRepository.save(chat);
-
-        log.info("Chat privado criado: Chat={}, Grupo={}, Usuários={} e {}",
-                salvo.getNome(), salvo.getGrupo().getNome(), user1.getNome(), user2.getNome());
-
-        return ChatMapper.toDTO(salvo);
-    }
-
-
-    @Transactional
-    public ChatDTO deletarChat(Long chatId, User autenticado) {
-        Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new IllegalArgumentException("Chat não encontrado"));
-
-        ChatDTO chatDTO = ChatMapper.toDTO(chat);
-        Group grupo = chat.getGrupo();
-
-        // se não tiver grupo vinculado, nao podemos deletar
-        if (grupo == null) {
-            throw new IllegalArgumentException("Chat não possui grupo associado");
+                return MensagemMapper.toDTO(salva, remetente.getId());
         }
 
-        User criador = grupo.getCriadoPor();
+        @Transactional
+        public ChatDTO criarChatPrivado(Long usuario1Id, Long usuario2Id) {
 
-        if (criador == null) {
-            throw new IllegalArgumentException("Grupo não possui criador definido");
+                // checa se ja existe algum chat entre os dois
+                Optional<Chat> chatExistente = chatRepository
+                                .findChatPrivadoEntreUsuarios(usuario1Id, usuario2Id);
+
+                // se existir, ele retorna o que existe entre od dois
+                if (chatExistente.isPresent()) {
+                        return ChatMapper.toDTO(chatExistente.get());
+                }
+
+                // busca padrao pelos usuarios
+                User user1 = userRepository.findById(usuario1Id)
+                                .orElseThrow(() -> new IllegalArgumentException("Usuário 1 não encontrado"));
+                User user2 = userRepository.findById(usuario2Id)
+                                .orElseThrow(() -> new IllegalArgumentException("Usuário 2 não encontrado"));
+
+                String nomeChat = user1.getNome() + " - " + user2.getNome();
+
+                // monta grupo
+                Group grupo = new Group();
+                grupo.setNome(nomeChat);
+                grupo.setDescricao("");
+                grupo.setCriadoPor(user1);
+                grupo.getMembros().add(user1);
+                grupo.getMembros().add(user2);
+
+                // monta chat
+                Chat chat = new Chat();
+                chat.setTipo(TipoChat.PRIVADO);
+                chat.setNome(nomeChat);
+                chat.getParticipantes().add(user1);
+                chat.getParticipantes().add(user2);
+
+                // liga os dois lados
+                chat.setGrupo(grupo);
+                grupo.setChat(chat);
+
+                // salva so o CHAT (lado dono, com cascade = ALL)
+                Chat salvo = chatRepository.save(chat);
+
+                log.info("Chat privado criado: Chat={}, Grupo={}, Usuários={} e {}",
+                                salvo.getNome(), salvo.getGrupo().getNome(), user1.getNome(), user2.getNome());
+
+                return ChatMapper.toDTO(salvo);
         }
 
-        boolean isCriador = criador.getId().equals(autenticado.getId());
-        boolean isAdmin = autenticado.getRole() == UserRole.ADMIN;
+        @Transactional
+        public ChatDTO deletarChat(Long chatId, User autenticado) {
+                Chat chat = chatRepository.findById(chatId)
+                                .orElseThrow(() -> new IllegalArgumentException("Chat não encontrado"));
 
-        // se quiser que seja EXCLUSIVO do criador, tira o "|| isAdmin"
-        if (!isCriador && !isAdmin) {
-            throw new AccessDeniedException("Você não tem permissão para excluir este chat.");
+                ChatDTO chatDTO = ChatMapper.toDTO(chat);
+                Group grupo = chat.getGrupo();
+
+                // se não tiver grupo vinculado, nao podemos deletar
+                if (grupo == null) {
+                        throw new IllegalArgumentException("Chat não possui grupo associado");
+                }
+
+                User criador = grupo.getCriadoPor();
+
+                if (criador == null) {
+                        throw new IllegalArgumentException("Grupo não possui criador definido");
+                }
+
+                boolean isCriador = criador.getId().equals(autenticado.getId());
+                boolean isAdmin = autenticado.getRole() == UserRole.ADMIN;
+
+                // se quiser que seja EXCLUSIVO do criador, tira o "|| isAdmin"
+                if (!isCriador && !isAdmin) {
+                        throw new AccessDeniedException("Você não tem permissão para excluir este chat.");
+                }
+
+                // aqui é onde a mágica acontece:
+                // Chat é o dono do @OneToOne(cascade = ALL, orphanRemoval = true) com Group.
+                chatRepository.delete(chat);
+                // -> deleta o Chat
+                // -> cascade mata o Group
+                // -> cascade em Mensagem (OneToMany) mata mensagens
+                // -> ManyToMany com usuários limpa a join table
+
+                return chatDTO;
         }
-
-        // aqui é onde a mágica acontece:
-        // Chat é o dono do @OneToOne(cascade = ALL, orphanRemoval = true) com Group.
-        chatRepository.delete(chat);
-        // -> deleta o Chat
-        // -> cascade mata o Group
-        // -> cascade em Mensagem (OneToMany) mata mensagens
-        // -> ManyToMany com usuários limpa a join table
-
-        return chatDTO;
-    }
 
 }

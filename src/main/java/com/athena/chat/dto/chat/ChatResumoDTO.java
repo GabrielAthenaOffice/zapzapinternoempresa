@@ -25,6 +25,7 @@ public class ChatResumoDTO {
 
     // pra privado: nome do outro usuário
     private String outroUsuario;
+    private String fotoOutroUsuario;
 
     // opcional pra badge de não lidas
     private Long quantidadeNaoLidas;
@@ -32,4 +33,3 @@ public class ChatResumoDTO {
     // NOVO: participantes do chat
     private List<UserSimpleDTO> participantes;
 }
-
