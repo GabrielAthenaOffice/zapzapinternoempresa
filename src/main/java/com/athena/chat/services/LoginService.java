@@ -9,6 +9,8 @@ import com.athena.chat.dto.simpledto.AuthenticationDTO;
 import com.athena.chat.dto.simpledto.UserSimpleDTO;
 import com.athena.chat.model.entities.User;
 import com.athena.chat.repositories.UserRepository;
+import com.athena.chat.services.storage.SupabaseStorageService;
+import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +28,7 @@ public class LoginService {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final TokenService tokenService;
+    private final SupabaseStorageService supabaseStorageService;
 
     public LoginResponseDTO login(AuthenticationDTO data) {
         Authentication authentication = null;
@@ -41,7 +44,7 @@ public class LoginService {
         ResponseCookie jwtCookie = tokenService.generateCookie(userDetails);
 
         UserSimpleDTO userSimpleDTO = new UserSimpleDTO(userDetails.getId(), userDetails.getNome(),
-                userDetails.getEmail(), userDetails.getRole());
+                userDetails.getEmail(), userDetails.getRole(), userDetails.getFotoPerfil());
 
         return new LoginResponseDTO(userSimpleDTO, jwtCookie.toString());
     }
@@ -64,16 +67,49 @@ public class LoginService {
         User savedUser = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
 
-        User user = UserMapper.toUser(userDTO);
-        user.setId(id);
+        if (userDTO.getNome() != null && !userDTO.getNome().isBlank()) {
+            savedUser.setNome(userDTO.getNome());
+        }
+        if (userDTO.getEmail() != null && !userDTO.getEmail().isBlank()) {
+            // Check if email is already taken by another user
+            userRepository.findByEmail(userDTO.getEmail())
+                    .ifPresent(u -> {
+                        if (!u.getId().equals(id)) {
+                            throw new IllegalArgumentException("E-mail já está em uso.");
+                        }
+                    });
+            savedUser.setEmail(userDTO.getEmail());
+        }
         if (userDTO.getSenha() != null && !userDTO.getSenha().isBlank()) {
             String encryptedPassword = new BCryptPasswordEncoder().encode(userDTO.getSenha());
-            user.setSenha(encryptedPassword);
+            savedUser.setSenha(encryptedPassword);
         }
-        savedUser = userRepository.save(user);
+        if (userDTO.getCargo() != null) {
+            savedUser.setCargo(userDTO.getCargo());
+        }
+        if (userDTO.getFotoPerfil() != null) {
+            savedUser.setFotoPerfil(userDTO.getFotoPerfil());
+        }
+        if (userDTO.getRole() != null) {
+            savedUser.setRole(userDTO.getRole());
+        }
+
+        savedUser = userRepository.save(savedUser);
 
         return UserMapper.toDTO(savedUser);
+    }
 
+    public String uploadProfilePhoto(Long userId, MultipartFile file) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+
+        String filePath = supabaseStorageService.uploadFile(file, "avatars");
+        String publicUrl = supabaseStorageService.getPublicUrl(filePath);
+
+        user.setFotoPerfil(publicUrl);
+        userRepository.save(user);
+
+        return publicUrl;
     }
 
     public UserDTO deletarUsuario(Long id) {

@@ -14,6 +14,7 @@ public class UserMapper {
                 user.getEmail(),
                 user.getSenha(),
                 user.getCargo(),
+                user.getFotoPerfil(),
                 user.getRole());
     }
 
@@ -28,7 +29,7 @@ public class UserMapper {
     }
 
     public static UserSimpleDTO toSimpleDTO(User user) {
-        return new UserSimpleDTO(user.getId(), user.getNome(), user.getEmail(), user.getRole());
+        return new UserSimpleDTO(user.getId(), user.getNome(), user.getEmail(), user.getRole(), user.getFotoPerfil());
     }
 
     public static User toUser(UserDTO dto) {
@@ -37,6 +38,7 @@ public class UserMapper {
         user.setEmail(dto.getEmail());
         user.setSenha(dto.getSenha());
         user.setCargo(dto.getCargo());
+        user.setFotoPerfil(dto.getFotoPerfil());
         user.setRole(dto.getRole());
         return user;
     }

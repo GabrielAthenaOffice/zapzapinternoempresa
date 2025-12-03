@@ -14,6 +14,6 @@ public class UserDTO {
     private String email;
     private String senha;
     private String cargo;
+    private String fotoPerfil;
     private UserRole role;
 }
-

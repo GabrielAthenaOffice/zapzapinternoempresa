@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +66,16 @@ public class AuthenticationController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
+    @PostMapping("/{id}/photo")
+    @PreAuthorize("#id == authentication.principal.id")
+    public ResponseEntity<Map<String, String>> uploadPhoto(@PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        String photoUrl = loginService.uploadProfilePhoto(id, file);
+        Map<String, String> response = new HashMap<>();
+        response.put("url", photoUrl);
+        return ResponseEntity.ok(response);
+    }
+
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> deletarUsuario(@PathVariable Long id) {
@@ -87,7 +98,7 @@ public class AuthenticationController {
         User userDetails = (User) authentication.getPrincipal();
 
         UserSimpleDTO userSimpleDTO = new UserSimpleDTO(userDetails.getId(),
-                userDetails.getNome(), userDetails.getEmail(), userDetails.getRole());
+                userDetails.getNome(), userDetails.getEmail(), userDetails.getRole(), userDetails.getFotoPerfil());
 
         return ResponseEntity.ok().body(userSimpleDTO);
     }

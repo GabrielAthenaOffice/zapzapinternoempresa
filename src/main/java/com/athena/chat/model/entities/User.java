@@ -33,6 +33,7 @@ public class User implements UserDetails {
     private String email;
     private String senha;
     private String cargo;
+    private String fotoPerfil;
 
     @Enumerated(EnumType.STRING)
     private UserRole role; // ADMIN, FUNCIONARIO ou ESTAGIARIO

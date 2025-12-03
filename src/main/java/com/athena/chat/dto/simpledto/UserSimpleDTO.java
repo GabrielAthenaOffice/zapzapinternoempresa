@@ -13,4 +13,5 @@ public class UserSimpleDTO {
     private String nome;
     private String email;
     private UserRole role;
+    private String fotoPerfil;
 }
