@@ -104,12 +104,14 @@ public class LoginService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
 
         String filePath = supabaseStorageService.uploadFile(file, "avatars");
-        String publicUrl = supabaseStorageService.getPublicUrl(filePath);
+        // ❌ REMOVER esta linha:
+        // String publicUrl = supabaseStorageService.getPublicUrl(filePath);
 
-        user.setFotoPerfil(publicUrl);
+        // ✅ SALVAR o filePath ao invés da URL
+        user.setFotoPerfil(filePath);  // ← MUDANÇA AQUI
         userRepository.save(user);
 
-        return publicUrl;
+        return filePath;  // ← MUDANÇA AQUI (retornar path ao invés de publicUrl)
     }
 
     public UserDTO deletarUsuario(Long id) {

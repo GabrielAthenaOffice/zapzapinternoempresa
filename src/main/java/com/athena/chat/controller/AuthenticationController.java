@@ -42,7 +42,7 @@ public class AuthenticationController {
 
         } catch (RuntimeException e) {
             Map<String, Object> map = new HashMap<>();
-            map.put("message", "Bad credentials");
+            map.put("message", "Email ou senha invalido");
             map.put("status", false);
 
             return new ResponseEntity<>(map, HttpStatus.UNAUTHORIZED);
@@ -69,10 +69,10 @@ public class AuthenticationController {
     @PostMapping("/{id}/photo")
     @PreAuthorize("#id == authentication.principal.id")
     public ResponseEntity<Map<String, String>> uploadPhoto(@PathVariable Long id,
-            @RequestParam("file") MultipartFile file) {
-        String photoUrl = loginService.uploadProfilePhoto(id, file);
+                                                           @RequestParam("file") MultipartFile file) {
+        String photoPath = loginService.uploadProfilePhoto(id, file);  // ← agora retorna path
         Map<String, String> response = new HashMap<>();
-        response.put("url", photoUrl);
+        response.put("path", photoPath);  // ← "path" ao invés de "url"
         return ResponseEntity.ok(response);
     }
 
