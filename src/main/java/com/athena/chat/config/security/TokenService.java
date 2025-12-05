@@ -31,12 +31,18 @@ public class TokenService {
     @Value("${api.security.cookie.samesite}")
     private String cookieSameSite;
 
+    // No TokenService.java do Chat
     public String generateToken(User user) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
             return JWT.create()
                     .withIssuer("auth-api")
-                    .withSubject(user.getEmail()) // verificação através do email
+                    .withSubject(user.getEmail())
+                    // Adicionar estes claims obrigatorios para o Fluxo
+                    .withClaim("role", user.getRole().toString()) // Enum para String
+                    .withClaim("userId", user.getId())
+                    .withClaim("name", user.getNome())
+                    // fim das adicoes
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
         } catch (JWTCreationException exception) {
