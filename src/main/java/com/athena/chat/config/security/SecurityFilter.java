@@ -27,8 +27,11 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = tokenService.getJwtFromCookies(request);
 
+        if (token == null) {
+            token = recoverToken(request);
+        }
+
         try {
-            String jwt = parseJwt(request);
 
             if(token != null) {
                 var subject = tokenService.validateToken(token);

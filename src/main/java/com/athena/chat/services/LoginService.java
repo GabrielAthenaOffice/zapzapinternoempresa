@@ -41,12 +41,14 @@ public class LoginService {
         }
         SecurityContextHolder.getContext().setAuthentication(authentication);
         User userDetails = (User) authentication.getPrincipal();
+
+        String jwt = tokenService.generateToken(userDetails);
         ResponseCookie jwtCookie = tokenService.generateCookie(userDetails);
 
         UserSimpleDTO userSimpleDTO = new UserSimpleDTO(userDetails.getId(), userDetails.getNome(),
                 userDetails.getEmail(), userDetails.getRole(), userDetails.getFotoPerfil());
 
-        return new LoginResponseDTO(userSimpleDTO, jwtCookie.toString());
+        return new LoginResponseDTO(userSimpleDTO, jwtCookie.toString(), jwt);
     }
 
     public User registrar(UserCreateDTO data) {

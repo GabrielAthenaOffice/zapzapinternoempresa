@@ -38,7 +38,7 @@ public class AuthenticationController {
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, response.cookie())
-                    .body(response.userDTO());
+                    .body(response);
 
         } catch (RuntimeException e) {
             Map<String, Object> map = new HashMap<>();
